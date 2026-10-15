@@ -572,10 +572,12 @@ const EV=[
     {t:'의원을 불러 산후 조리를 돕는다',need:{wl:14},fx:{wl:-14,bd:14},kid:1,r:'의원이 아내의 맥을 살펴 약을 지어 주었다. 산후 조리가 순조롭다.'}]},
 {id:'doljan',loc:'home',a:[19,52],w:6,once:true,req:g=>(g.kids||0)>=1,t:'첫아이의 첫돌',
  note:'첫돌에는 돌상에 쌀, 실, 붓, 활, 엽전 등을 올려 아이가 무엇을 집는지 보며 앞날을 점쳤어요. 수수팥떡은 나쁜 기운을 막는다고 믿었어요.',
- p:['첫아이의 첫돌이 돌아왔다. 돌상에 쌀과 실, 붓, 활, 엽전을 올렸다.'],
- c:[{t:'돌상을 푸짐히 차려 이웃을 청한다',need:{wl:8},fx:{wl:-8,bd:10,hn:3},r:'수수팥떡과 백설기를 이웃에 돌렸다. 아이가 집은 것을 보고 모두 박수를 쳤다.'},
-    {t:'단출하게 가족끼리 조촐히 치른다',fx:{bd:6,hp:1},r:'백설기 한 덩이에도 가족의 웃음이 가득하다.'},
-    {t:'돌잡이로 아이의 앞날을 점쳐 본다',fx:{bd:7,lr:1},r:'아이가 한참 망설이다 붓을 덥석 집었다. "글재주가 있겠구나!" 어른들이 껄껄 웃으셨다.'}]},
+ p:['첫아이의 첫돌이 돌아왔다. 돌상에 쌀과 실, 붓, 활, 엽전을 올렸다. 아이가 무엇을 집을까?'],
+ c:[{t:'붓에 손을 뻗는다',fx:{bd:7,lr:2},r:'아이가 붓을 덥석 집었다. "글재주가 있겠구나!" 어른들이 껄껄 웃으셨다.'},
+    {t:'엽전에 손을 뻗는다',fx:{bd:7,wl:4},r:'아이가 엽전을 꼭 움켜쥐었다. "재물 복이 있겠구나!" 모두 박수를 쳤다.'},
+    {t:'활에 손을 뻗는다',fx:{bd:7,hn:2},r:'아이가 활을 번쩍 들었다. "씩씩한 기개가 있겠구나!" 어른들이 흐뭇해하셨다.'},
+    {t:'실에 손을 뻗는다',fx:{bd:7,hp:2},r:'아이가 실타래를 끌어안았다. "오래오래 살겠구나!" 어른들이 덕담을 건넸다.'},
+    {t:'쌀에 손을 뻗는다',fx:{bd:7,wl:2,hp:1},r:'아이가 쌀을 한 줌 쥐고 웃었다. "평생 먹을 복이 있겠구나!" 모두 즐거워했다.'}]},
 {id:'agi',loc:'home',a:[20,55],w:2.2,req:g=>(g.kids||0)>=1,t:'아이의 열병',
  note:'옛날에는 마마(천연두)와 홍역으로 어린 나이에 아이를 잃는 일이 많았어요. 호환마마라는 말이 있을 만큼 마마는 두려운 병이었어요.',
  p:['아이가 밤새 열에 들떠 보챈다. 마마나 홍역일지도 모른다.',['이웃 할멈','"어서 의원부터 부르게!"']],
@@ -2404,6 +2406,20 @@ const PASS=[
  {a:[15,60],who:['gwi'],t:'솟을대문 앞에 청탁을 넣으려는 손님들이 줄지어 찾아왔다.',fx:{hn:2}},
  {a:[15,60],who:['gwi'],t:'사랑방에서 높은 벼슬아치들이 시국을 논하는 소리가 들렸다.',fx:{lr:1,hn:1}},
  {a:[20,70],who:['gwi'],t:'문중 모임에서 집안 어른들께 인사를 올렸다.',fx:{bd:2,hn:1}}];
+const DOLITEMS=[['붓','lr','학문에 이름을 떨칠 아이','붓에 손을 뻗는다'],['엽전','wl','재물 복이 있는 아이','엽전에 손을 뻗는다'],['활','hn','씩씩한 무인의 기질을 타고난 아이','활에 손을 뻗는다'],['실','hp','오래오래 장수할 아이','실에 손을 뻗는다'],['쌀','wl','평생 먹을 복이 있는 아이','쌀에 손을 뻗는다']];
+async function dolJabi(id){
+  G.busy=true;G.skip=false;updateSpeed();showBanner('1세 · 돌잔치');
+  await walkTo('home');if(id!==runId)return {};
+  npcLoc='home';setSignOn('home');
+  await say(['첫돌을 맞아 돌상이 차려졌다. 상 위에는 쌀, 실, 붓, 활, 엽전이 놓여 있다.',['어른들','"{n}야, 무엇을 집으려나? 어서 집어 보렴!"']],id);if(id!==runId)return {};
+  const i=await ask(DOLITEMS.map(o=>({t:o[3]})));if(id!==runId)return {};
+  const it=DOLITEMS[i],fx={};fx[it[1]]=3;if(it[0]==='쌀')fx.hp=1;
+  const d=applyFx(fx);sfx.ok();
+  const r='{n}이(가) '+it[0]+'을(를) 집었다. 어른들이 "'+it[2]+'"라며 흐뭇해한다.';
+  await say([{text:r,gain:fmtGain(d)}],id);if(id!==runId)return {};
+  addLog(G.age,'돌잔치 — '+it[3]+'. '+r,{note:'돌잡이상에는 실·붓·엽전·활 등을 올려 아이의 앞날을 점쳤어요.'});
+  G.chron.push({age:G.age,t:'돌잔치',c:it[3],r:''});
+  hideGloss();npcLoc=null;setSignOn(null);G.busy=false;updateStatus(d);setIdle('돌잔치를 마치고, 다시 일상으로 돌아왔다.');return {}}
 function passiveLine(){const a=G.age;
   if(a===1){const it=R([['붓','lr','학문에 이름을 떨칠 아이'],['엽전','wl','재물 복이 있는 아이'],['활','hn','씩씩한 무인의 기질'],['실','hp','오래오래 장수할 아이']]);
     const fx={};fx[it[1]]=3;const d=applyFx(fx);addLog(a,'돌잔치 날, 돌잡이상에서 {n}이(가) '+it[0]+'을(를) 집었다. 어른들이 "'+it[2]+'"이라며 흐뭇해한다.',{note:'돌잡이상에는 실·붓·엽전·활 등을 올려 아이의 앞날을 점쳤어요.'});return d}
@@ -2459,7 +2475,7 @@ async function lifeLoop(id){
     if(!(await waitYear(id)))return;
     G.age++;yearTick();invTick();
     const dk=checkDeath();if(dk){await endLife(id,dk);return}
-    const d=passiveLine();
+    const d=G.age===1?await dolJabi(id):passiveLine();if(id!==runId)return;
     if(!G.skip&&Math.random()<.4)walkTo(R(Object.keys(LOCN)));
     if(G.age>=MAXAGE){G.hap[G.age]=calcHap();await endLife(id,'old');return}
     if(G.age>=7){const p=clamp(.2+.07*G.since,0,.9)*(G.age>=70?.5:1);
