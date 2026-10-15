@@ -572,7 +572,13 @@ const EV=[
     {t:'의원을 불러 산후 조리를 돕는다',need:{wl:14},fx:{wl:-14,bd:14},kid:1,r:'의원이 아내의 맥을 살펴 약을 지어 주었다. 산후 조리가 순조롭다.'}]},
 {id:'doljan',loc:'home',a:[19,52],w:6,once:true,req:g=>(g.kids||0)>=1,t:'첫아이의 첫돌',
  note:'첫돌에는 돌상에 쌀, 실, 붓, 활, 엽전 등을 올려 아이가 무엇을 집는지 보며 앞날을 점쳤어요. 수수팥떡은 나쁜 기운을 막는다고 믿었어요.',
- p:['첫아이의 첫돌이 돌아왔다. 돌상에 쌀과 실, 붓, 활, 엽전을 올렸다. 아이가 무엇을 집을까?'],
+ p:['첫아이의 첫돌이 돌아왔다. 돌잔치를 어떻게 치를까?'],
+ c:[{t:'이웃과 마을을 청해 푸짐하게 차린다',need:{wl:12},fx:{wl:-12,bd:6,hn:4},next:'doljan2',r:'수수팥떡과 백설기를 이웃에 돌리고 온 동네를 청했다. 잔칫집 웃음소리가 담을 넘는다.'},
+    {t:'가까운 친척들만 모아 차린다',need:{wl:5},fx:{wl:-5,bd:4,hn:1},next:'doljan2',r:'친척들이 모여 돌상 앞에 둘러앉았다. 덕담이 오간다.'},
+    {t:'가족끼리 단출하게 치른다',fx:{bd:3,hp:1},next:'doljan2',r:'백설기 한 덩이에도 가족의 웃음이 가득하다.'}]},
+{id:'doljan2',loc:'home',a:[19,52],w:1,once:true,req:()=>false,t:'돌잡이',
+ note:'첫돌에는 돌상에 쌀, 실, 붓, 활, 엽전 등을 올려 아이가 무엇을 집는지 보며 앞날을 점쳤어요. 수수팥떡은 나쁜 기운을 막는다고 믿었어요.',
+ p:['돌상에 쌀과 실, 붓, 활, 엽전이 놓였다. 아이가 무엇을 집을까?'],
  c:[{t:'붓에 손을 뻗는다',fx:{bd:7,lr:2},r:'아이가 붓을 덥석 집었다. "글재주가 있겠구나!" 어른들이 껄껄 웃으셨다.'},
     {t:'엽전에 손을 뻗는다',fx:{bd:7,wl:4},r:'아이가 엽전을 꼭 움켜쥐었다. "재물 복이 있겠구나!" 모두 박수를 쳤다.'},
     {t:'활에 손을 뻗는다',fx:{bd:7,hn:2},r:'아이가 활을 번쩍 들었다. "씩씩한 기개가 있겠구나!" 어른들이 흐뭇해하셨다.'},
@@ -2469,7 +2475,8 @@ async function runEvent(ev,id){
   await say([{text:(ch.chk?(ok?'【성공!】 ':'【실패…】 '):'')+res.r,gain:fmtGain(d)}],id);if(id!==runId)return;
   addLog(G.age,(ev.h?'['+(G.year+G.age)+'년] ':'')+ev.t+' — '+ch.t+'. '+res.r,{note:NOTES[ev.id]||ev.note,tone:ch.chk?(ok?'good':'bad'):''});
   G.chron.push({age:G.age,t:ev.t,c:ch.t,r:ch.chk?(ok?'성공':'실패'):''});
-  hideGloss();npcLoc=null;setSignOn(null);G.busy=false;updateStatus(d);setIdle(ev.t+'을(를) 마치고, 다시 일상으로 돌아왔다.')}
+  hideGloss();npcLoc=null;setSignOn(null);G.busy=false;updateStatus(d);setIdle(ev.t+'을(를) 마치고, 다시 일상으로 돌아왔다.');
+  if(res.next&&id===runId&&!G.execd){const ne=EV.find(e=>e.id===res.next);if(ne)await runEvent(ne,id)}}
 async function lifeLoop(id){
   while(id===runId&&!G.dead){
     if(!(await waitYear(id)))return;
@@ -2522,7 +2529,7 @@ function renderTitle(){runId++;abortUI();G=null;hideGameUI();setWorld('pyung');v
   $('#console').innerHTML='<div class="card"><div class="title-grid"><div class="tcol"><div class="vtag">v0.1 · 무료 · 조선 시대 인생 시뮬레이션</div>'+
    '<div class="hero-num">100분의 <em>1</em></div>'+
    '<p class="lead" style="font-size:17px">조선 백성 100명이 태어난다면, 양반은 몇 명일까요? 어느 집에서 태어날지는 고를 수 없어요. 당신이 그랬던 것처럼.</p>'+
-   '<div class="how"><div><b>태어나기</b>신분·고향·집안이 무작위로 정해져요</div><div><b>세월 흐르기</b>1년씩 흐르다 결정의 순간에 멈춰요</div><div><b>한평생</b>고른 길에 따라 서로 다른 결말이 나와요</div></div>'+
+   '<div class="how"><div><b>태어나기</b>신분·고향·집안이 무작위로 정해져요</div><div><b>살아가기</b>1년씩 지나가다 결정의 순간에 멈춰요</div><div><b>한평생</b>고른 길에 따라 서로 다른 결말이 나와요</div></div>'+
    '<div class="row"><button class="btn pri" data-act="born" style="font-size:18px;padding:12px 26px">태어나기</button>'+(sv?'<button class="btn tea" data-act="resume" style="font-size:18px;padding:12px 26px;margin-left:10px">이어하기 ('+sv.age+'세 · '+esc(sv.name)+')</button>':'')+'</div></div>'+
    '<div><h3 style="margin:0;font-size:22px">조선 백성 100명이 태어난다면</h3><div class="bars">'+dist.map(d=>'<div><span>'+d[0]+'</span><span class="bar"><i style="width:'+d[1]+'%"></i></span><b>'+d[1]+'%</b></div>').join('')+'</div>'+
    '<p class="lmcap">학자마다 추정이 달라요. 조선 전·중기를 단순화한 값이에요. 왕실은 실제로는 훨씬 드물지만, 만나 볼 수 있도록 조금 넣었어요.</p>'+
