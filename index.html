@@ -157,7 +157,20 @@ footer{text-align:center;color:var(--sub);font-size:13px;margin-top:20px}
 @media (prefers-reduced-motion:reduce){.banner{animation:none}.msg .next{animation:none}}
 
 .side .feedcard{flex:none!important}.layout.ended .side .feedcard{order:9}.side .feed{max-height:230px!important}
-@media (min-width:861px){.layout.playing .side{overflow-y:auto!important;scrollbar-width:thin}}
+#sidetabs{display:none}
+@media (min-width:861px){
+.layout.playing:not(.ended) .side{overflow:hidden!important;display:flex;flex-direction:column;gap:10px}
+.layout.playing:not(.ended) .side .status{flex:none}
+.layout.playing:not(.ended) #sidetabs{display:flex;flex:none;gap:4px}
+#sidetabs button{flex:1;padding:7px 4px;font:inherit;font-size:14px;font-weight:700;border:2px solid #3b2a17;border-radius:6px;background:#f6ecd6;color:#3b2a17;cursor:pointer}
+#sidetabs button.on{background:#3b2a17;color:#f6ecd6}
+.layout.playing:not(.ended) .side>.card{display:none!important}
+.layout.playing:not(.ended) .side[data-tab=feed]>#feedcard:not([hidden]){display:flex!important;flex:1 1 auto;min-height:0}
+.layout.playing:not(.ended) .side[data-tab=feed] .feed{max-height:none!important;flex:1 1 auto;min-height:0;overflow-y:auto}
+.layout.playing:not(.ended) .side[data-tab=map]>.mapcard{display:block!important;flex:1 1 auto;min-height:0;overflow-y:auto}
+.layout.playing:not(.ended) .side[data-tab=fam]>#famcard,.layout.playing:not(.ended) .side[data-tab=fam]>#peercard{display:block!important;flex:none}
+.layout.playing:not(.ended) .side[data-tab=fam]{overflow-y:auto!important}
+}
 .silrok{margin:8px 0 10px;padding:8px 12px;border-left:3px solid #a3251c;background:rgba(163,37,28,.06);border-radius:0 6px 6px 0}.silrok small{display:block;font-size:12px;color:#a3251c;font-weight:700;letter-spacing:1px}.silrok p{margin:2px 0 0;font-family:var(--f-t);font-size:15px;line-height:1.6}
 .altc{margin:8px 0 12px;padding:10px 12px;border:1px dashed rgba(0,0,0,.25);border-radius:8px}.altc .me{margin:4px 0 8px}.altc .me b{color:#2f6b57}.altc ul{margin:0;padding-left:18px}.altc li{margin:4px 0}.altc li b{color:#a3251c}
 </style>
@@ -502,8 +515,9 @@ input[type=password]{width:100%;max-width:340px;border:2px solid var(--ink);bord
       </div>
       <div id="console" aria-live="polite"></div>
     </section>
-    <aside class="side" id="side" hidden>
+    <aside class="side" id="side" data-tab="feed" hidden>
       <div class="rpg status" id="status"></div>
+      <div id="sidetabs" role="tablist"><button type="button" class="on" data-act="stab" data-v="feed">인생 기록</button><button type="button" data-act="stab" data-v="map">인생 지도</button><button type="button" data-act="stab" data-v="fam">가족·동무</button></div>
       <div class="card feedcard" id="feedcard" hidden>
         <div class="fh"><h2>인생 기록</h2><small>최근 순 · 줄을 누르면 ★ · '자료'는 실제 역사 설명이에요</small></div><small id="fbon" style="display:block;color:var(--mint)"></small>
         <div class="ff" id="feedf"></div><ol class="feed" id="feed"></ol>
@@ -695,13 +709,41 @@ const EV=[
  c:[{t:'처가 농사일을 거든다',fx:{wl:6,bd:6,hn:2},r:'장인어른이 일손을 덜었다며 흐뭇해하신다.'},
     {t:'장인께 서책을 빌려 배운다',fx:{lr:6,bd:3},r:'장인어른의 서책을 빌려 읽고 가르침을 받았다.'},
     {t:'처가 식구들과 어울려 지낸다',fx:{bd:7,hp:2},r:'두 집안 식구가 둘러앉아 밥을 먹으니 정이 도탑다.'}]},
-{id:'haesan_f',loc:'home',a:[15,42],sex:'f',w:10,req:g=>g.flags.has('married')&&!g.flags.has('widowed')&&(g.kids||0)<5&&g.age-(g.lastBirth==null?-9:g.lastBirth)>=2,t:'해산',
+{id:'kidhon',loc:'home',a:[28,75],w:14,req:g=>!g.rf&&g.cls!=='wang'&&!!honKid(g),t:'자식의 혼사',
+ note:'조선 시대에는 부모나 집안 어른이 중매쟁이를 통해 자식의 혼처를 정했어요. 신랑 집에서 신부 집으로 예물(납폐)을 보내고, 신부 집은 혼수를 마련했어요. 양반은 가문의 격을 무척 따졌고, 당사자끼리 마음이 맞아 혼인하는 일은 드물었어요. 열다섯 안팎의 어린 나이에 혼인하는 일(조혼)도 흔했어요.',
+ p:g=>{const k=honKid(g),son=k.s==='m';return [(son?'아들 ':'딸 ')+josaFix(k.n+'이(가)')+' 어느새 '+(g.age-k.b)+'살. '+(son?'장가갈':'시집갈')+' 나이가 되었다.',['중매쟁이','"'+(son?'참한 규수 댁':'좋은 신랑감')+'이 있다우. 이번 기회를 놓치면 아깝지."']]},
+ c:g=>{const k=honKid(g),c=g.cls,hi=c==='yang'||c==='gwi';
+   if(c==='nobi')return [{t:'주인댁에 혼인을 허락해 달라고 청한다',chk:{p:.65,ok:{fx:{bd:5},hon:'nobi',r:'주인이 허락했다. 같은 처지의 착한 짝을 만났다.'},ng:{fx:{hn:-2},hon:'wait',r:'"아직 일손이 모자란다." 주인이 고개를 저었다. 몇 해 뒤 다시 청해야겠다.'}}},{t:'아직 이르다며 몇 해 더 데리고 있는다',fx:{bd:2},hon:'wait',r:'"조금만 더 곁에 두자." 아이 얼굴을 한참 바라보았다.'}];
+   return [{t:'중매로 형편이 비슷한 집안과 맺는다',fx:{wl:-5,bd:3},hon:'match',r:'중매쟁이가 오가며 혼처가 정해졌다. 사주단자가 오갔다.'},
+     {t:'혼수를 넉넉히 마련해 형편 좋은 집안과 맺으려 한다',need:{wl:20},chk:{p:.55,ok:{fx:{wl:-20,hn:5},hon:'rich',r:'넉넉한 집안에서 혼인을 받아들였다. 이웃들이 부러워한다.'},ng:{fx:{wl:-8,hn:-2},hon:'match',r:'상대 집안이 거절했다. 결국 형편이 비슷한 집안과 혼처를 정했다.'}}},
+     hi?{t:'가문의 격을 따져 이름난 가문과 혼사를 맺는다',chk:{s:'hn',n:50,ok:{fx:{hn:8,wl:-10},hon:'noble',r:'이름난 가문과 사돈을 맺게 되었다. 문중 어른들이 크게 기뻐했다.'},ng:{fx:{hn:-3},hon:'match',r:'"격이 맞지 않는다." 퇴짜를 맞았다. 결국 비슷한 집안과 혼처를 정했다.'}}}:null,
+     {t:'아이가 마음에 둔 이웃과 맺어 준다',fx:{bd:6,hn:-2},hon:'love',r:'"요즘 세상에 별일이네." 수군거림도 있었지만 아이 얼굴이 환해졌다.'},
+     {t:'아직 이르다며 몇 해 더 데리고 있는다',fx:{bd:2},hon:'wait',r:'"조금만 더 곁에 두자." 아이 얼굴을 한참 바라보았다.'}].filter(Boolean)}},
+{id:'kidedu',loc:'school',a:[20,70],w:14,req:g=>!g.rf&&g.cls!=='wang'&&!!eduKid(g),t:'자식 공부',
+ note:'조선의 남자아이는 일곱 살 무렵 서당에 들어가 《천자문》, 《동몽선습》 등을 배웠어요. 형편이 넉넉한 양반집은 이름난 스승을 모셔 오기도 했어요. 여자아이는 서당에 다니지 못했지만 집에서 한글이나 《소학》, 바느질과 길쌈을 배웠어요. 형편이 어려운 집 아이들은 일찍부터 일을 배워야 했어요.',
+ p:g=>{const k=eduKid(g),son=k.s==='m';return [(son?'아들 ':'딸 ')+josaFix(k.n+'이(가)')+' 어느새 '+(g.age-k.b)+'살이 되었다.',['집안 어른','"이제 '+(son?'글을 배울':'무언가를 배울')+' 나이가 되었구나. 어떻게 가르칠 테냐?"']]},
+ c:g=>{const k=eduKid(g),son=k.s==='m',c=g.cls,hi=c==='yang'||c==='gwi';
+   if(c==='nobi')return [{t:'주인댁 도련님 공부를 어깨너머로라도 듣게 한다',fx:{bd:2},ked:'ear',r:'"들키지 않게 조심하거라." 아이가 눈을 반짝였다.'},{t:'일찍부터 일을 가르친다',fx:{wl:3},ked:'work',r:'아이가 고사리손으로 일을 거들기 시작했다.'}];
+   if(son)return [hi?{t:'이름난 스승을 집으로 모셔 온다',need:{wl:25},fx:{wl:-25,hn:3},ked:'master',r:'고을에서 이름난 선비를 스승으로 모셨다. 글 읽는 소리가 밤늦게까지 들린다.'}:null,
+     {t:'서당에 보내 글공부를 시킨다',need:{wl:8},fx:{wl:-8},ked:'study',r:'훈장님께 책씻이 떡을 약속하고 아이를 서당에 보냈다.'},
+     {t:'내가 직접 글을 가르친다',fx:{lr:2,hp:-1},ked:'home',r:'저녁마다 등잔 아래 아이와 마주 앉아 《천자문》을 읽었다.'},
+     {t:'일찍부터 일을 가르친다',fx:{wl:4},ked:'work',r:'"글보다 일솜씨가 먼저다." 아이가 일을 거들기 시작했다.'}].filter(Boolean);
+   return [{t:'한글과 《소학》을 가르친다',fx:{lr:1},ked:'eon',r:'아이가 한 글자 한 글자 또박또박 따라 썼다.'},
+     hi||c==='jung'?{t:'오라비 어깨너머로 한문까지 익히게 둔다',fx:{bd:1},ked:'study',r:'"여자아이가 무슨 한문을…" 하는 말도 있었지만 아이는 곧잘 따라 읽었다.'}:null,
+     {t:'바느질과 길쌈을 가르친다',fx:{wl:2},ked:'craft',r:'아이의 바느질 땀이 날마다 고와진다.'}].filter(Boolean)}},
+{id:'kidplan',loc:'home',a:[16,48],w:14,req:g=>g.flags.has('married')&&!g.flags.has('widowed')&&!g.flags.has('gungnyeo')&&!g.rf&&(g.sex==='f'?g.age<=42:g.age<=50)&&(g.kids||0)<6&&(g.kplan==null||(g.kplan==='wait'&&g.age-(g.kAsk||0)>=3)),t:'아이를 가질까',
+ note:'조선 시대에는 자식을 많이 두는 것을 큰 복으로 여겼고, 특히 대를 이을 아들을 중요하게 생각했어요. 하지만 아이가 다섯 살을 넘기기 어려웠고, 아이를 낳다 목숨을 잃는 어머니도 많았어요. 오늘날처럼 마음대로 정하기는 어려웠지만, 이 게임에서는 직접 골라 볼 수 있어요.',
+ p:g=>(g.kids||0)?[g.sex==='m'?'아이들 웃음소리가 마당에 가득하다. 아내와 마주 앉아 이야기를 나누었다.':'아이들 웃음소리가 마당에 가득하다. 남편과 마주 앉아 이야기를 나누었다.',['집안 어른','"자식은 많을수록 복이라더라. 하나 더 보는 게 어떠냐?"']]:[g.sex==='m'?'혼인한 지 몇 해. 아내와 앞날을 이야기했다.':'혼인한 지 몇 해. 남편과 앞날을 이야기했다.',['집안 어른','"이제 손주 볼 날만 기다린다. 삼신할미께 빌어 보려무나."']],
+ c:g=>[{t:(g.kids||0)?'아이를 하나 더 갖고 싶다':'아이를 갖고 싶다',fx:{bd:3},kp:'want',r:'삼신할미께 정화수를 떠 놓고 아이를 점지해 달라고 빌었다.'},
+    {t:'살림이 나아질 때까지 기다린다',fx:{wl:3},kp:'wait',r:'"조금만 더 살림을 일구고 나서…" 서로 고개를 끄덕였다.'},
+    {t:(g.kids||0)?'이만하면 자식 복은 충분하다':'둘이서 오순도순 살기로 한다',fx:{bd:2},kp:'done',r:(g.kids||0)?'지금 아이들을 잘 키우는 데 마음을 쏟기로 했다.':'집안 어른들은 서운해했지만, 둘이 서로 의지하며 살기로 했다.'}]},
+{id:'haesan_f',loc:'home',a:[15,42],sex:'f',w:10,req:g=>g.flags.has('married')&&!g.flags.has('widowed')&&g.kplan==='want'&&(g.kids||0)<6&&g.age-(g.lastBirth==null?-9:g.lastBirth)>=2,t:'해산',
  note:'아기가 태어나면 대문에 금줄을 걸어 부정한 것이 들어오지 못하게 했어요. 아들이면 숯과 붉은 고추, 딸이면 숯과 솔가지를 달았고, 삼칠일(21일)이 되면 걷었어요. 아기를 점지한다는 삼신할미께 미역국과 쌀을 올려 감사했어요.',
  p:['산달이 되었다. 안방에 삼신상을 차려 쌀과 미역, 정화수를 올리고 삼신할미께 순산을 빈다.',['산파','"조금만 더 힘을 주시오!"']],
  c:[{t:'삼신할미께 빌며 순산을 기다린다',chk:{p:.7,ok:{fx:{bd:12,hn:2,hp:-4},kid:1,r:'우렁찬 울음소리가 집 안에 퍼졌다. 삼신할미께 올린 정성이 닿았나 보다.'},ng:{fx:{hp:-20,bd:4},kid:1,r:'난산이었다. 며칠을 사경을 헤맸지만 아이는 무사히 태어났다.'}}},
     {t:'산파를 부르고 미역을 장만한다',need:{wl:8},fx:{wl:-8,hp:-2,bd:10},kid:1,r:'경험 많은 산파 덕에 순산했다. 뜨끈한 미역국 한 사발이 달다.'},
     {t:'의원을 불러 산후 조리까지 한다',need:{wl:14},fx:{wl:-14,hp:2,bd:12},kid:1,r:'의원이 맥을 짚고 산후 조리를 돌봐 주었다. 몸이 한결 빨리 회복되었다.'}]},
-{id:'haesan_m',loc:'home',a:[16,50],sex:'m',w:10,req:g=>g.flags.has('married')&&!g.flags.has('widowed')&&(g.kids||0)<5&&g.age-(g.lastBirth==null?-9:g.lastBirth)>=2,t:'아내의 해산',
+{id:'haesan_m',loc:'home',a:[16,50],sex:'m',w:10,req:g=>g.flags.has('married')&&!g.flags.has('widowed')&&g.kplan==='want'&&(g.kids||0)<6&&g.age-(g.lastBirth==null?-9:g.lastBirth)>=2,t:'아내의 해산',
  note:'아기가 태어나면 대문에 금줄을 걸어 부정한 것이 들어오지 못하게 했어요. 아들이면 숯과 붉은 고추, 딸이면 숯과 솔가지를 달았고, 삼칠일(21일)이 되면 걷었어요.',
  p:['아내의 산달이 되었다. 사내는 안방에 들어가지 못하고 마당만 서성인다.',['산파','"아직이오! 남정네는 물러가 계시오!"']],
  c:[{t:'삼신할미께 정화수를 올리고 빈다',fx:{bd:10,hn:2},kid:1,r:'우렁찬 울음소리가 들렸다. 삼신할미께 올린 정성이 닿았나 보다.'},
@@ -2665,7 +2707,7 @@ const ROY=[
   [1844,'홍씨(효정왕후)를 새 왕비로 맞았다.']]}
 ];
 const RF=()=>G&&G.rf?ROY.find(r=>r.id===G.rf):null;
-const RBLOCK=new Set(['chaekbong','gantaek_m','gantaek_f','wangwi','okssa','haesan_m','haesan_f','jaehon','agi','taesil','doljan']);
+const RBLOCK=new Set(['kidhon','kidedu','kidplan','chaekbong','gantaek_m','gantaek_f','wangwi','okssa','haesan_m','haesan_f','jaehon','agi','taesil','doljan']);
 async function royalYear(id){const f=RF();if(!f)return;const y=G.year+G.age,evs=f.ev.filter(e=>e[0]===y);if(!evs.length)return;
   G.busy=true;G.skip=false;updateSpeed();showBanner(G.age+'세 · '+y+'년 · 실록의 기록');await walkTo('office');if(id!==runId)return;npcLoc='office';setSignOn('office');
   for(const e of evs){const o=e[2]||{};let d={};
@@ -2880,7 +2922,7 @@ const hero={x:4*T+8,y:6*T+14,fr:0},trail=[];
 function drawKid(c,cx,by,sex,fr){const b=fr%2;rect(c,'rgba(0,0,0,.22)',cx-3,by-1,7,2);rect(c,'#3a2f2a',cx-2,by-2-(fr===1?1:0),1,2);rect(c,'#3a2f2a',cx+1,by-2-(fr===3?1:0),1,2);
   rect(c,sex==='f'?'#ff8fa3':'#e8d9a8',cx-3,by-8-b,6,6);rect(c,SKIN,cx-2,by-12-b,4,4);rect(c,'#161616',cx-2,by-13-b,4,2);rect(c,'#222',cx-1,by-10-b,1,1);rect(c,'#222',cx+1,by-10-b,1,1)}
 function drawFamily(fr){if(typeof G==='undefined'||!G||G.dead||!G.flags)return;const fol=[];if(G.flags.has('married')&&!G.flags.has('widowed'))fol.push({sp:1});
-  (G.kl||[]).filter(k=>k.d==null&&G.age-k.b<16).slice(-3).forEach(k=>fol.push(k));
+  (G.kl||[]).filter(k=>k.d==null&&!k.out&&G.age-k.b<20).slice(-4).forEach(k=>fol.push(k));
   fol.forEach((f,i)=>{const t=trail[(i+1)*8],x=Math.round(t?t[0]:hero.x-11*(i+1)),y=Math.round(t?t[1]:hero.y);
     if(f.sp)drawPerson(mx,x,y,personStyle(G.cls,G.sex==='m'?'f':'m'),fr);else drawKid(mx,x,y,f.s,fr)})}
 function setWorld(cls){viewCls=cls;world=buildWorld(cls)}
@@ -3117,9 +3159,9 @@ async function dolJabi(id){
   hideGloss();npcLoc=null;setSignOn(null);G.busy=false;updateStatus(d);setIdle('돌잔치를 마치고, 다시 일상으로 돌아왔다.');return {}}
 function passiveLine(){const a=G.age;
   if(MILE[a]&&!G.used.has('m'+a)){G.used.add('m'+a);const m=MILE[a](),d=applyFx(m.fx||{});addLog(a,m.t,{note:m.note,tone:'good'});setIdle(m.t);return d}
-  if(a>6&&Math.random()>.55)return {};
+  const quiet=a>6&&Math.random()>.55;
   const rp=G.rp||(G.rp=[]),all=PASS.filter(p=>a>=p.a[0]&&a<=p.a[1]&&passOK(p)&&(!p.sex||p.sex===G.sex)&&(!p.req||p.req(G))),fresh=all.filter(p=>!rp.includes(p.t)),pool=fresh.length?fresh:all;if(!pool.length)return {};
-  const p=R(pool);rp.push(p.t);if(rp.length>5)rp.shift();const d=applyFx(p.fx||{});addLog(a,p.t,{note:p.note,tone:(p.fx.hp<0||p.fx.wl<0)?'bad':''});setIdle(p.t);return d}
+  const p=R(pool);rp.push(p.t);if(rp.length>5)rp.shift();const d=quiet?{}:applyFx(p.fx||{});addLog(a,p.t,{note:p.note,tone:(!quiet&&(p.fx.hp<0||p.fx.wl<0))?'bad':''});setIdle(p.t);return d}
 function yearTick(){const a=G.age,s=G.s;let d=0;
   if(a<30)d=Math.random()<.2?1:0;else if(a<45)d=Math.random()<.25?-1:0;else if(a<60)d=Math.random()<.6?-1:0;else d=-1-(Math.random()<.5?1:0);s.hp=clamp(s.hp+d,0,100);if(a>=15&&a<=60&&Math.random()<.2)s.wl=clamp(s.wl+1,0,100);
   const f=G.focus;if(f&&a>=FOCUS_AGE&&s[f]!=null){if(Math.random()<.45)s[f]=clamp(s[f]+1,0,100);
@@ -3230,7 +3272,7 @@ function checkDeath(){const a=G.age,cm=CLM[G.cls]||1;
    const fam=(y>=1670&&y<=1671)||(y>=1695&&y<=1696)||(y>=1876&&y<=1877);if(fam&&Math.random()<(G.s.wl<25?.04:G.s.wl<60?.01:.002))return 'famine'}
   if(a>=15&&a<55&&Math.random()<clamp(.002+(50-G.s.hp)/2500,.001,.03)*cm)return 'ill';
   if(a>=55&&Math.random()<clamp(((70-G.s.hp)/700+(a-55)*.004)*cm+(a>=85?(a-85)*.02:0),0,.6))return 'natural';return null}
-const WANG_OK=new Set(['chulgung','jaehon','hwangap','okssa','ilsang','byeong','jesa','son','mama','haesan_f','haesan_m','doljan','agi']);
+const WANG_OK=new Set(['kidplan','chulgung','jaehon','hwangap','okssa','ilsang','byeong','jesa','son','mama','haesan_f','haesan_m','doljan','agi']);
 const GWI_NO=new Set(['heun','nong','dam','gunyeok','jubin','mulgeo','uinyeo']);
 const MEV=new Map();function marryEv(e){if(!MEV.has(e.id)){let t='';try{t=typeof e.c==='function'?e.c.toString():JSON.stringify(e.c)}catch(x){}MEV.set(e.id,/married|"kid"|kid:|widowed|haesan/.test(t+e.id))}return MEV.get(e.id)}
 function whoOK(e){if(G.flags.has('gungnyeo')&&marryEv(e))return false;if(G.cls==='cheon'&&e.id==='jesa')return false;if(G.flags.has('seoeol')&&e.id==='gwageo'&&G.year+G.age<1777)return false;if(G.rf&&RBLOCK.has(e.id))return false;if(G.flags.has('buma')&&['gwageo','eumseo','jabgwa'].includes(e.id))return false;if(G.flags.has('inlaw')&&['chaekbong','gantaek_m','gantaek_f','chulgung','wangwi'].includes(e.id))return false;if(G.cls==='wang')return e.who?e.who.includes('wang'):WANG_OK.has(e.id);
@@ -3241,6 +3283,7 @@ function passOK(p){if(G.cls==='wang')return !!p.who&&p.who.includes('wang');
 function pickEvent(){const a=G.age;
   const force=k=>{const e=EV.find(x=>x.id===k);return e&&a>=e.a[0]&&a<=e.a[1]&&whoOK(e)&&(!e.sex||e.sex===G.sex)&&(!e.req||e.req(G))&&!(e.once&&G.used.has(e.id))&&G.lastEv!==e.id?e:null};
   if(G.cls==='wang'&&!G.rf){const e=force('chaekbong')||(!G.flags.has('married')&&a>=11&&(force('gantaek_m')||force('gantaek_f')))||force('chulgung');if(e&&Math.random()<.8)return e}
+  {const ke=force('kidhon')||force('kidedu');if(ke&&Math.random()<.85)return ke}
   {const sj=force('saeop');if(sj&&Math.random()<.7)return sj}
   {const cb=force('cheonbyeol')||force('gabo_cheon');if(cb&&Math.random()<.7)return cb}
   {const se=force('seoeol')||force('heotong');if(se&&Math.random()<.7)return se}
@@ -3249,7 +3292,7 @@ function pickEvent(){const a=G.age;
   if(!G.flags.has('married')){
     if(G.flags.has('betrothed')){if(Math.random()<.85){const e=force('honrye_m')||force('honrye_f');if(e)return e}}
     else if(a>=14&&a<=28&&Math.random()<.7){const e=force('hon')||force('nobihon')||force('cheonhon');if(e)return e}}
-  else if((G.kids||0)<4&&a<=44&&Math.random()<.5){const e=force('haesan_f')||force('haesan_m');if(e)return e}
+  else{const kp=force('kidplan');if(kp&&Math.random()<.8)return kp;if((G.kids||0)<6&&a<=46&&Math.random()<.85){const e=force('haesan_f')||force('haesan_m');if(e)return e}}
   {const dj=force('doljan')||force('taesil');if(dj&&Math.random()<.85)return dj}
   if(!String(G.lastEv||'').startsWith('x')&&Math.random()<.4){const y=G.year+a,hx=HXE.filter(e=>e.yr===y&&a>=e.a[0]&&a<=e.a[1]&&!G.used.has(e.id)&&(G.cls!=='wang'||e.cat==='R'||e.cat==='P')&&!(RF()&&RF().kw.some(k=>e.t.includes(k)))),main=hx.filter(e=>!e.rt),rt=hx.filter(e=>e.rt);
     if(main.length)return R(main);if(rt.length&&Math.random()<.15)return R(rt)}
@@ -3273,11 +3316,11 @@ async function runEvent(ev,id){
   const i=await ask(opts,nt?'📜 역사 해설 · '+nt:'',ev.t,(ev.once||ev.h||cs.some(c=>c.chk||c.need))?'중대 결정':'작은 선택');if(id!==runId)return;
   const ch=cs[i];let ok=true,res=ch;
   if(ch.chk){const c=ch.chk;ok=c.s?(G.s[c.s]+Math.random()*30-15>=cN(c)):Math.random()<c.p;res=ok?c.ok:c.ng}
-  if(res.kid){if(res.kid>0){const boy=Math.random()<.5;G.kids=(G.kids||0)+res.kid;if(boy)G.sons=(G.sons||0)+1;G.lastBirth=G.age;G.kl=G.kl||[];G.kl.push({n:R(boy?['복동','개똥','귀동','돌이','만수','삼돌','칠복']:['간난','복순','이쁜','옥분','순이','말순','섭섭']),s:boy?'m':'f',b:G.age});
+  if(res.kid){if(res.kid>0){G.kplan=null;const boy=Math.random()<.5;G.kids=(G.kids||0)+res.kid;if(boy)G.sons=(G.sons||0)+1;G.lastBirth=G.age;G.kl=G.kl||[];G.kl.push({n:R(boy?['복동','개똥','귀동','돌이','만수','삼돌','칠복']:['간난','복순','이쁜','옥분','순이','말순','섭섭']),s:boy?'m':'f',b:G.age});
     res=Object.assign({},res,{r:res.r+' '+(boy?'대문에 숯과 붉은 고추를 단 금줄이 걸렸다. 아들이다!':'대문에 숯과 푸른 솔가지를 단 금줄이 걸렸다. 딸이다!')})}
   else if((G.kids||0)>0){const yk=(G.kl||[]).filter(k=>k.d==null&&G.age-k.b<=10),lk=yk.length?R(yk):null,boy=lk?lk.s==='m':Math.random()<(G.sons||0)/G.kids;if(boy)G.sons=Math.max(0,(G.sons||0)-1);G.kids--;if(lk)lk.d=G.age;res=Object.assign({},res,{r:res.r+(lk?' ('+(boy?'아들':'딸')+' '+lk.n+'이를 잃었다.)':(boy?' (아들을 잃었다.)':' (딸을 잃었다.)'))})}}
   const d=applyFx(res.fx||{});if(res.unflag==='widowed'){G.flags.delete('widowed');G.flags.add('remarried');if(G.kin){G.kin.sp=G.sex==='m'?rr(-12,-2):rr(-3,6);G.kin.spD=null}}
-  if(res.flag){G.flags.add(res.flag);if(res.flag==='married')G.flags.delete('betrothed')}if(res.die)G.execd=res.die;if(res.inv){G.inv=G.inv||{};G.inv[res.inv]=(G.inv[res.inv]||0)+1}if(res.clr)G.inv={};if(res.flag2)G.flags.add(res.flag2);if(res.job)G.job2=res.job;if(res.cls==='pyung'&&NOBIJOB.includes(G.job2))G.job2=G.sex==='m'?'farm':'weave';if(res.inlaw){ensureFam();G.kin.rp=1;G.flags.add('inlaw')}if(res.mv)G.mv=res.mv;if(res.flag==='fallen'&&res.cls)G.job2=res.cls==='nobi'?(G.sex==='m'?'mfarm':'kitchen'):(G.sex==='m'?'farm':'weave');if(res.cls){G.cls=res.cls;setWorld(G.cls);buildLabels()}
+  if(res.flag){G.flags.add(res.flag);if(res.flag==='married')G.flags.delete('betrothed')}if(res.die)G.execd=res.die;if(res.inv){G.inv=G.inv||{};G.inv[res.inv]=(G.inv[res.inv]||0)+1}if(res.clr)G.inv={};if(res.flag2)G.flags.add(res.flag2);if(res.job)G.job2=res.job;if(res.cls==='pyung'&&NOBIJOB.includes(G.job2))G.job2=G.sex==='m'?'farm':'weave';if(res.inlaw){ensureFam();G.kin.rp=1;G.flags.add('inlaw')}if(res.mv)G.mv=res.mv;if(res.kp){G.kplan=res.kp;G.kAsk=G.age}if(res.ked){const k=eduKid(G);if(k)k.ed=res.ked}if(res.hon){const k=honKid(G);if(k){if(res.hon==='wait')k.hw=G.age;else{k.hon=res.hon;k.hy=G.age}}}if(res.flag==='fallen'&&res.cls)G.job2=res.cls==='nobi'?(G.sex==='m'?'mfarm':'kitchen'):(G.sex==='m'?'farm':'weave');if(res.cls){G.cls=res.cls;setWorld(G.cls);buildLabels()}
   ok?sfx.ok():sfx.no();
   await say([{text:(ch.chk?(ok?'【성공!】 ':'【실패…】 '):'')+res.r,gain:fmtGain(d)}],id);if(id!==runId)return;
   addLog(G.age,(ev.h?'['+(G.year+G.age)+'년] ':'')+ev.t+' — '+ch.t+'. '+res.r,{note:nt,tone:ch.chk?(ok?'good':'bad'):''});
@@ -3293,16 +3336,17 @@ async function lifeLoop(id){
     if(!(await waitYear(id)))return;
     if(G.age===0&&!G.rf&&!G.nb0){G.nb0=1;if(Math.random()<U5[G.cls]/100*.12*(G.s.hp>=60?.8:1.2)){G.hap[0]=calcHap();await endLife(id,'infant');return}}
     G.age++;{const y=G.year+G.age;if(y===1678)addLog(G.age,'이제부터 재산을 엽전(상평통보) 냥으로 셈한다.');if(y===1905)addLog(G.age,'화폐 정리 사업으로 엽전 대신 새 돈 \'원\'을 쓰게 되었다.')}yearTick();invTick();jobTick();try{famYear()}catch(e){console.error(e)}
+    if(G.fq&&G.fq.length){const q=G.fq;G.fq=[];if(q.some(t=>/세상을 떠/.test(t))){showBanner(G.age+'세 · 부고(訃告)');try{sfx.no()}catch(e){}}else showBanner(G.age+'세 · 소식');await say(q,id);if(id!==runId)return}
     if(G.rf){await royalYear(id);if(id!==runId)return;if(G.year+G.age>=RF().d){G.hap[G.age]=calcHap();await endLife(id,'record');return}}
     const dk=G.rf?null:checkDeath();if(dk){await endLife(id,dk);return}
     const d=G.age===1?await dolJabi(id):passiveLine();if(id!==runId)return;
     if(!G.skip&&Math.random()<.4)walkTo(R(Object.keys(LOCN)));
     {let bg,ran=0;while(ran<4&&(bg=bigEvent())){ran++;G.since=0;await runEvent(bg,id);if(id!==runId)return;if(G.s.hp<=0&&!G.rf){G.hap[G.age]=calcHap();await endLife(id,'hp');return}}
      if(G.year+G.age>=1910&&!G.rf){G.hap[G.age]=calcHap();await endLife(id,'joseonend');return}
-     if(ran){G.hap[G.age]=calcHap();updateStatus();saveGame();continue}}
+     G.bigRan=ran;if(ran)updateStatus()}
     {const dj=EV.find(e=>e.id==='doljan');if(dj&&!G.used.has('doljan')&&whoOK(dj)&&dj.req(G)&&G.kl&&G.kl.some(k=>k.d==null&&G.age-k.b===1)){G.since=0;await runEvent(dj,id);if(id!==runId)return;G.hap[G.age]=calcHap();updateStatus();saveGame();continue}}
-    if(G.age>=7){const p=clamp(.2+.07*G.since,0,.9)*(G.age>=70?.5:1);
-      if(Math.random()<p){const ev=pickEvent();if(ev){G.since=0;await runEvent(ev,id);if(id!==runId)return;if(G.execd){G.hap[G.age]=calcHap();await endLife(id,'treason');return}if(G.s.hp<=0&&!G.rf){G.hap[G.age]=calcHap();await endLife(id,'hp');return}}else G.since++}else G.since++}
+    if(G.age>=7){const p=clamp(.2+.07*G.since+(G.kplan==='want'&&G.flags.has('married')&&!G.flags.has('widowed')?.3:0)+(eduKid(G)||honKid(G)?.4:0),0,.9)*(G.age>=70?.5:1)*(G.bigRan?.6:1);
+      if(Math.random()<p){let n=0;do{const ev=pickEvent();if(!ev){if(!n)G.since++;break}G.since=0;n++;await runEvent(ev,id);if(id!==runId)return;if(G.execd){G.hap[G.age]=calcHap();await endLife(id,'treason');return}if(G.s.hp<=0&&!G.rf){G.hap[G.age]=calcHap();await endLife(id,'hp');return}}while(n<3&&Math.random()<(n===1?.5:.3)*(G.bigRan?.6:1))}else G.since++}
     G.hap[G.age]=calcHap();updateStatus(d);saveGame()}}
 
 /* ============ 엔딩 ============ */
@@ -3345,11 +3389,30 @@ function relW(){const r=Math.random();return r<.4?'가까운 사이':r<.8?'무�
 function ensureFam(){if(G.kin){fixRoyalPd();return}const risk=G.cls==='nobi'?.35:G.cls==='pyung'?.25:.15,older=Math.max(0,(G.order||1)-1),n=G.rf?0:older+rr(0,2),sb=[];
   for(let i=0;i<n;i++){const o=i<older;sb.push({sex:Math.random()<.5?'m':'f',off:o?-rr(2,4)*(older-i):rr(2,4)*(i-older+1),L:Math.random()<risk?rr(0,10):rr(38,78),rel:relW()})}
   G.kin={pd:[rr(8,45),rr(8,48)],sb,hobby:HOBBY[rr(0,HOBBY.length-1)],sp:rr(-3,3),rel:[relW(),relW()]};fixRoyalPd()}
-function famYear(){if(!G.kin)ensureFam();if(G.year+G.age===1896&&P13[G.place]&&!G.p96){G.p96=1;addLog(G.age,'사는 고을의 이름이 바뀌었다. '+G.place+' → '+P13[G.place]+' (13도제)',{note:'1896년 8도를 13도로 바꾸면서 전라·충청·경상·평안·함경도가 남도와 북도로 나뉘었어요.'})}if(G.rf&&G.year+G.age>=RF().d)return;const F=G.kin,a=G.age,pa=G.pa||[30,28];
-  ['아버지','어머니'].forEach((n,i)=>{if(a===F.pd[i]){applyFx({bd:-3,hp:-1});if(G.cls==='wang'&&!G.flags.has('inlaw')){const rf=RF();addLog(a,i===0?(rf&&rf.fdt?rf.fdt:'임금이신 아바마마('+(rf?rf.dad:reignOf(G.year).split(' ')[0])+')께서 승하하셨다. 온 나라가 국상을 치렀다.'):rf&&rf.mdt?rf.mdt:rf?'어마마마('+rf.mo+')께서 세상을 떠나셨다. 궁궐에 곡소리가 울렸다.':'어마마마께서 '+(pa[1]+a)+'세에 '+cz(famCause(pa[1]+a,G.year+a,'f'))+' 세상을 떠나셨다. 궁궐에 곡소리가 울렸다.',{tone:'bad',note:'임금이나 왕비가 세상을 떠나면 나라 전체가 상을 치르는 국상을 지냈어요. 그동안 혼례나 잔치, 음악이 금지되었어요.'});return}addLog(a,(G.flags.has('inlaw')?'친정 ':'')+n+'께서 '+(pa[i]+a)+'세에 '+cz(famCause(pa[i]+a,G.year+a,i?'f':'m'))+' 세상을 떠나셨다. '+(ERA(G)==='전기'?'형제자매가 함께 상을 치르고 제사도 돌아가며 맡기로 했다.':'맏아들이 상주가 되어 삼년상을 치렀다.'),{tone:'bad',note:'부모가 돌아가시면 삼년상(실제로는 약 27개월)을 치렀어요. 양반 가운데에는 무덤 곁에 움막을 짓고 지키는 시묘살이를 한 사람도 있었어요.'})}});
+function famLog(a,t,o){addLog(a,t,o);(G.fq=G.fq||[]).push(t)}
+function honKid(g){return (g.kl||[]).find(k=>{const ag=g.age-k.b;return k.d==null&&!k.out&&!k.hon&&ag>=(k.s==='f'?13:15)&&ag<=(k.s==='f'?20:22)&&(k.hw==null||g.age-k.hw>=2)})}
+function eduKid(g){return (g.kl||[]).find(k=>k.d==null&&!k.ed&&g.age-k.b>=7&&g.age-k.b<=11)}
+const HONT={match:{m:'중매로 형편이 비슷한 집안의 규수와 혼례를 올렸다.',f:'중매로 맺은 집안으로 시집을 갔다.'},rich:{m:'넉넉한 집안의 규수와 혼례를 올렸다.',f:'넉넉한 집안으로 시집을 갔다.'},noble:{m:'이름난 가문의 규수와 혼례를 올려 집안의 격이 높아졌다.',f:'이름난 가문으로 시집을 갔다.'},love:{m:'마음에 두었던 이웃 처녀와 혼례를 올렸다.',f:'마음에 두었던 이웃 총각에게 시집을 갔다.'},nobi:{m:'주인댁의 허락을 받아 같은 처지의 짝과 혼인했다.',f:'주인댁의 허락을 받아 같은 처지의 짝과 혼인했다.'}};
+function kidGrow(k){const son=k.s==='m',nm=josaFix(k.n+'이(가)'),c=G.cls,hi=c==='yang'||c==='gwi',first=son&&(G.kl||[]).filter(x=>x.s==='m'&&x.d==null).indexOf(k)===0;let t,fx={};const r=Math.random();
+  if(son){const ed=k.ed||'work';
+    if(ed==='study'||ed==='master'||ed==='home'){const p=(ed==='master'?.45:ed==='study'?.3:.18)*(hi?1:c==='jung'?.5:c==='pyung'?.3:.08);
+      if(r<p){t='아들 '+nm+' 과거에 급제했다! 어려서부터 '+(ed==='master'?'이름난 스승께 배운':ed==='study'?'서당에서 갈고닦은':'집에서 익힌')+' 글공부가 빛을 보았다.';fx={hn:10,bd:3}}
+      else if(r<p+.35){t='아들 '+nm+' 글을 잘해 마을 아이들을 가르치는 훈장이 되었다.';fx={hn:4,lr:1}}
+      else{t='아들 '+nm+' 과거에는 붙지 못했지만, 글을 아는 덕에 고을에서 믿음직한 일꾼이 되었다.';fx={hn:2,wl:2}}}
+    else if(ed==='ear'){t='아들 '+nm+' 어깨너머로 익힌 글 덕에 주인댁 장부를 맡게 되었다.';fx={wl:2,hn:2}}
+    else{t='아들 '+nm+' 어려서부터 배운 일솜씨로 '+(c==='nobi'?'주인댁 일을 도맡는 일꾼':'집안 살림을 일으키는 일꾼')+'이 되었다.';fx={wl:5}}
+    t+=' '+HONT[k.hon||'match'].m+(first?' 며느리를 맞은 맏아들은 이제 집안의 큰일을 맡아 바쁘게 지낸다.':' 혼인한 뒤 살림을 따로 났다(분가).')}
+  else{const ed=k.ed||'craft';
+    const hs=HONT[k.hon||'match'].f;t=ed==='eon'?'딸 '+nm+' '+hs+' 한글 편지를 곱게 쓰고 책을 읽을 줄 알아 시댁에서 칭찬이 자자하다고 한다.':ed==='study'?'딸 '+nm+' '+hs+' 어려서 익힌 글공부 덕에 시댁 살림 장부를 도맡았다고 한다.':'딸 '+nm+' '+hs+' 야무진 길쌈과 바느질 솜씨로 시댁 살림을 일으켰다고 한다.';
+    fx=ed==='craft'?{wl:2,bd:2}:{hn:2,bd:2};t+=' 집이 한결 허전하다.'}
+  applyFx(fx);famLog(G.age,t,{tone:'good',note:son?'조선에서는 보통 맏아들이 부모를 모시고 집안을 이었고, 다른 아들은 혼인하면 살림을 따로 냈어요(분가).':'조선의 딸은 혼인하면 시댁으로 가서 살았어요. 조선 전기에는 신랑이 신부 집에서 한동안 사는 풍습도 있었어요.'})}
+function famYear(){if(!G.kin)ensureFam();if(G.year+G.age===1896&&P13[G.place]&&!G.p96){G.p96=1;famLog(G.age,'사는 고을의 이름이 바뀌었다. '+G.place+' → '+P13[G.place]+' (13도제)',{note:'1896년 8도를 13도로 바꾸면서 전라·충청·경상·평안·함경도가 남도와 북도로 나뉘었어요.'})}if(G.rf&&G.year+G.age>=RF().d)return;const F=G.kin,a=G.age,pa=G.pa||[30,28];
+  ['아버지','어머니'].forEach((n,i)=>{if(a===F.pd[i]){applyFx({bd:-3,hp:-1});if(G.cls==='wang'&&!G.flags.has('inlaw')){const rf=RF();famLog(a,i===0?(rf&&rf.fdt?rf.fdt:'임금이신 아바마마('+(rf?rf.dad:reignOf(G.year).split(' ')[0])+')께서 승하하셨다. 온 나라가 국상을 치렀다.'):rf&&rf.mdt?rf.mdt:rf?'어마마마('+rf.mo+')께서 세상을 떠나셨다. 궁궐에 곡소리가 울렸다.':'어마마마께서 '+(pa[1]+a)+'세에 '+cz(famCause(pa[1]+a,G.year+a,'f'))+' 세상을 떠나셨다. 궁궐에 곡소리가 울렸다.',{tone:'bad',note:'임금이나 왕비가 세상을 떠나면 나라 전체가 상을 치르는 국상을 지냈어요. 그동안 혼례나 잔치, 음악이 금지되었어요.'});return}famLog(a,(G.flags.has('inlaw')?'친정 ':'')+n+'께서 '+(pa[i]+a)+'세에 '+cz(famCause(pa[i]+a,G.year+a,i?'f':'m'))+' 세상을 떠나셨다. '+(ERA(G)==='전기'?'형제자매가 함께 상을 치르고 제사도 돌아가며 맡기로 했다.':'맏아들이 상주가 되어 삼년상을 치렀다.'),{tone:'bad',note:'부모가 돌아가시면 삼년상(실제로는 약 27개월)을 치렀어요. 양반 가운데에는 무덤 곁에 움막을 짓고 지키는 시묘살이를 한 사람도 있었어요.'})}});
   {const cr=crisisOf(G.year+a);if(cr&&!G.rf)F.sb.forEach(x=>{if(a>x.off&&a<x.off+x.L&&Math.random()<.04){x.L=a-x.off;x.c=cr}});if(cr&&G.peers&&!G.rf)G.peers.forEach(p=>{if(a<p.L&&Math.random()<.04){p.L=a;p.c=cr}})}
-  F.sb.forEach(x=>{if(x.L>0&&a>=x.off&&a===x.off+x.L){applyFx({bd:-2});const c=x.c||(x.c=famCause(x.L,G.year+a,x.sex));addLog(a,josaFix(sibName(x)+'이(가) ')+x.L+'세에 '+cz(c)+' 세상을 떠났다.',{tone:'bad'})}});
-  if(!G.rf&&G.flags.has('married')&&!G.flags.has('widowed')&&a>=22&&Math.random()<Math.min(.05,Math.max(.004,(a-28)*.0015))*(crisisOf(G.year+a)?4:1)){G.flags.add('widowed');F.spD=a;applyFx({bd:-6,hp:-2});addLog(a,'배우자가 '+(a+F.sp)+'세에 '+cz(famCause(a+F.sp,G.year+a,G.sex==='m'?'f':'m'))+' 먼저 세상을 떠났다. 함께한 날들이 자꾸 떠오른다.',{tone:'bad'})}}
+  F.sb.forEach(x=>{if(x.L>0&&a>=x.off&&a===x.off+x.L){applyFx({bd:-2});const c=x.c||(x.c=famCause(x.L,G.year+a,x.sex));famLog(a,josaFix(sibName(x)+'이(가) ')+x.L+'세에 '+cz(c)+' 세상을 떠났다.',{tone:'bad'})}});
+  if(G.peers&&!G.rf)G.peers.forEach(p=>{if(a===p.L&&!p.lg){p.lg=1;if(!p.c)p.c=famCause(p.L,G.year+a,p.sex);famLog(a,'같은 해 태어난 동무 '+josaFix(p.name+'이(가)')+' '+p.L+'세에 '+cz(p.c)+' 세상을 떠났다.',{tone:'bad'})}});
+  if(!G.rf&&G.cls!=='wang')(G.kl||[]).forEach(k=>{if(k.d==null&&!k.out&&((k.hon&&a-k.b>=(k.s==='f'?14:16)&&a>k.hy)||a-k.b>=(k.s==='f'?19:21))){k.out=a;kidGrow(k)}});
+  if(!G.rf&&G.flags.has('married')&&!G.flags.has('widowed')&&a>=22&&Math.random()<Math.min(.05,Math.max(.004,(a-28)*.0015))*(crisisOf(G.year+a)?4:1)){G.flags.add('widowed');F.spD=a;applyFx({bd:-6,hp:-2});famLog(a,'배우자가 '+(a+F.sp)+'세에 '+cz(famCause(a+F.sp,G.year+a,G.sex==='m'?'f':'m'))+' 먼저 세상을 떠났다. 함께한 날들이 자꾸 떠오른다.',{tone:'bad'})}}
 function fixRoyalPd(){if(G.cls!=='wang'||!G.kin||G.kin.rp)return;G.kin.rp=1;const rf=RF();if(rf){G.kin.pd[0]=Math.max(1,rf.fd-G.year);if(rf.md)G.kin.pd[1]=Math.max(1,rf.md-G.year);return}let end=1926;for(let i=0;i<REIGNS.length;i++)if(REIGNS[i][0]<=G.year)end=i+1<REIGNS.length?REIGNS[i+1][0]:1926;if(end===1907)end=1919;
   if(G.year===end)end=REIGNS.findIndex(r=>r[0]===end)+1<REIGNS.length?REIGNS[REIGNS.findIndex(r=>r[0]===end)+1][0]:1907;G.kin.pd[0]=Math.max(1,end-G.year)}
 function crisisOf(y,pl){pl=pl||(G&&G.place)||'';if(y===1821||y===1822)return '괴질(콜레라)';if((y>=1670&&y<=1671)||(y>=1695&&y<=1696)||(y>=1876&&y<=1877))return '굶주림';if(y>=1636&&y<=1637&&/평안도|황해도|경기도|한양/.test(pl))return '전란';if(y===1894&&/전라도|충청도/.test(pl))return '전란';return ''}
@@ -3421,7 +3484,7 @@ function showEnding(key,isNew){const E=endInfo(key),dex=store.get('jo.dex',[]);a
    (()=>{const st=[...document.querySelectorAll('#feed li.star')].reverse().map(li=>[(li.querySelector('.a')||{}).textContent||'',((li.querySelector('.t')||{}).firstChild||{}).textContent||'']);return st.length?'<h3 style="margin:12px 0 4px;font-size:20px">★ 기억에 남는 순간</h3><ul class="timeline">'+st.map(x=>'<li><b>'+esc(x[0])+'</b> '+esc(x[1])+'</li>').join('')+'</ul>':''})()+'<h3 style="margin:12px 0 4px;font-size:20px">걸어온 길</h3><ul class="timeline"><li><b>0세</b> '+esc(G.reign)+', '+esc(G.place)+'의 '+CL[G.cls].n+' 집안에서 태어남</li>'+
    G.chron.map(c=>'<li><b>'+c.age+'세</b> '+esc(c.t)+' — '+esc(c.c)+(c.r?' ('+c.r+')':'')+'</li>').join('')+(G.kids?'<li><b>일생</b> '+kidTxt()+'를 두었다</li>':'')+'<li><b>'+G.age+'세</b> '+esc(E.n)+'</li></ul>'+
    glossBox([E.n,E.e,G.reign,G.place].concat(G.chron.map(c=>c.t+' '+c.c)),8)+
-   '<div id="fbstats" class="fbs"></div><div id="fbsame" class="fbs"></div>'+'<h3 style="margin:14px 0 4px;font-size:20px">이번 생 공유하기</h3><textarea id="epimemo" maxlength="60" rows="2" placeholder="이 삶을 살아 본 한 줄 소감 (선택)"></textarea><textarea id="epitxt" readonly rows="5">'+esc(shareText(''))+'</textarea>'+'<div class="row" style="margin-top:16px"><button class="btn pri" data-act="again">다시 태어나기</button>'+(clsCode()?'<button class="btn" data-act="board">우리 반 결과판</button>':'')+'<button class="btn" data-act="share">이미지 공유·저장</button><button class="btn" data-act="copytxt">글 복사</button><button class="btn" data-act="dex">엔딩 도감 ('+dex.filter(k=>END_ORDER.includes(k)).length+'/'+END_ORDER.length+')</button></div></div>'}
+   '<div id="fbstats" class="fbs"></div><div id="fbsame" class="fbs"></div>'+'<h3 style="margin:14px 0 4px;font-size:20px">이번 생 공유하기</h3><textarea id="epimemo" maxlength="60" rows="2" placeholder="이 삶을 살아 본 한 줄 소감 (선택)"></textarea><textarea id="epitxt" readonly rows="5">'+esc(shareText(''))+'</textarea>'+'<div class="row" style="margin-top:16px"><button class="btn pri" data-act="again">다시 태어나기</button>'+(clsCode()?'<button class="btn" data-act="board">우리 반 결과판</button>':'')+'<button class="btn" data-act="share">공유하기</button><button class="btn" data-act="saveimg">이미지 저장</button><button class="btn" data-act="copytxt">글 복사</button><button class="btn" data-act="dex">엔딩 도감 ('+dex.filter(k=>END_ORDER.includes(k)).length+'/'+END_ORDER.length+')</button></div></div>'}
 
 /* ===== 생존 곡선 · 이미지 저장 · 기록 필터 · 맨 위로 ===== */
 let EPI=null,FF=null;
@@ -3444,7 +3507,7 @@ function survSVG(w,h){const W=Math.max(80,Math.ceil((G.age+3)/10)*10);const P=su
   const ax=G.age,sv=Math.round(survFrac(ax));
   return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="display:block;background:rgba(0,0,0,.08);border-radius:4px"><polyline fill="none" stroke="#8b7355" stroke-width="1.4" stroke-dasharray="4 3" points="'+KOR.map(p=>X(p[0])+','+Y(p[1])).join(' ')+'"/><polyline fill="none" stroke="#2f6b57" stroke-width="2" points="'+P.map(p=>X(p[0])+','+Y(p[1])).join(' ')+'"/><line x1="'+X(ax)+'" x2="'+X(ax)+'" y1="0" y2="'+h+'" stroke="#a3251c" stroke-dasharray="3 3"/><text x="'+Math.min(+X(ax)+3,w-60)+'" y="12" font-size="10" fill="#a3251c">'+(sv<1?'1% 미만':sv+'%')+' 생존</text></svg><div class="glg"><span><i style="background:#2f6b57"></i>이 아이의 조선(추정)</span><span><i style="background:#8b7355"></i>오늘의 대한민국(대략)</span><span>세로 = 같은 해 태어난 100명 중 살아 있는 수</span></div>'}
 function wrapTxt(x,t,px,py,mw,lh){let line='';for(const ch of t){if(x.measureText(line+ch).width>mw){x.fillText(line,px,py);py+=lh;line=ch}else line+=ch}x.fillText(line,px,py);return py+lh}
-function shareImg(){if(!EPI)return;const c=document.createElement('canvas');c.width=640;const LMN=Math.max(80,Math.ceil((EPI.age+1)/20)*20),LMX=(LMN/20-4)*28;c.height=1100+LMX;const x=c.getContext('2d');
+function shareImg(mode){if(!EPI)return;const c=document.createElement('canvas');c.width=640;const LMN=Math.max(80,Math.ceil((EPI.age+1)/20)*20),LMX=(LMN/20-4)*28;c.height=1100+LMX;const x=c.getContext('2d');
   x.fillStyle='#f4ead2';x.fillRect(0,0,640,c.height);x.strokeStyle='#5b4528';x.lineWidth=4;x.strokeRect(14,14,612,c.height-28);
   x.fillStyle='#3a2a14';x.textAlign='center';x.font='bold 22px sans-serif';x.fillText('조선 인생극장 · 묘지명  No. '+EPI.no,320,58);
   x.font='bold 46px serif';x.fillText(EPI.name,320,125);x.font='18px sans-serif';x.fillText(EPI.head,320,162);x.fillText(EPI.sub,320,190);
@@ -3455,17 +3518,24 @@ function shareImg(){if(!EPI)return;const c=document.createElement('canvas');c.wi
   y+=14;x.font='bold 19px sans-serif';x.fillText('인생 지도',50,y);y+=14;
   for(let i=0;i<LMN;i++){const cx=50+(i%20)*28,cy=y+Math.floor(i/20)*28;x.fillStyle=i>EPI.age?'#d6d0c2':(EPI.hap[i]!=null?hapCol(EPI.hap[i]):'#ece6d6');x.fillRect(cx,cy,24,24);if(EPI.mk[i]){x.strokeStyle='#e0a800';x.lineWidth=3;x.strokeRect(cx+1,cy+1,22,22);x.fillStyle='#fff';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(mkIcon(EPI.mk[i]),cx+12,cy+17);x.textAlign='left'}if(i===EPI.exp){x.strokeStyle='#3a2a14';x.lineWidth=1;x.setLineDash([3,2]);x.strokeRect(cx,cy,24,24);x.setLineDash([])}}
   x.fillStyle='#7a6544';x.font='13px sans-serif';x.fillText('한 칸 = 1년 · 진할수록 행복했던 해 · 금빛 테두리는 큰일',50,y+124+LMX);const memo=($('#epimemo')||{}).value;if(memo){x.font='italic 17px sans-serif';x.fillStyle='#3a2a14';wrapTxt(x,'“'+memo+'”',50,y+160+LMX,540,24)}
-  c.toBlob(b=>{const f=new File([b],'조선인생극장.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:shareText(memo||'')}).catch(()=>{});return}const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='조선인생극장_'+EPI.name+'.png';document.body.appendChild(a);a.click();a.remove()})}
+  x.textAlign='right';x.fillStyle='#7a6544';x.font='14px sans-serif';x.fillText('나도 해 보기 → '+GAMEURL.replace(/^https?:\/\//,''),610,c.height-30);x.textAlign='left';
+  const txt=shareText(memo||''),dl=b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='조선인생극장_'+EPI.name+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toastMsg('이미지를 저장했어요')};
+  c.toBlob(b=>{if(mode==='save'){dl(b);return}
+    const f=new File([b],'조선인생극장.png',{type:'image/png'});
+    if(navigator.share){const d=navigator.canShare&&navigator.canShare({files:[f]})?{files:[f],text:txt}:{title:'조선 인생극장',text:txt,url:GAMEURL};navigator.share(d).catch(()=>{});return}
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toastMsg('공유 글과 게임 링크를 복사했어요. 원하는 곳에 붙여 넣으세요.')).catch(()=>dl(b))})}
+function toastMsg(t){const o=document.createElement('div');o.textContent=t;o.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#231c14;color:#fbf6ec;padding:10px 16px;border-radius:8px;z-index:9999;font-size:15px;max-width:90vw;text-align:center';document.body.appendChild(o);setTimeout(()=>o.remove(),2600)}
 const FFR=[['전체',0,200],['0~9세',0,9],['10~19세',10,19],['20~39세',20,39],['40세~',40,200]];
 function applyFF(){const f=$('#feed');if(!f)return;for(const li of f.children){const a=parseInt((li.querySelector('.a')||{}).textContent,10);li.hidden=!!FF&&!(a>=FF[0]&&a<=FF[1])}}
 function buildFF(){const b=$('#feedf');b.innerHTML=FFR.map((r,i)=>'<button type="button" class="ffb'+(i===0?' on':'')+'" data-i="'+i+'">'+r[0]+'</button>').join('');
   b.addEventListener('click',e=>{const t=e.target.closest('.ffb');if(!t)return;const r=FFR[+t.dataset.i];FF=t.dataset.i==='0'?null:[r[1],r[2]];[...b.children].forEach(x=>x.classList.toggle('on',x===t));applyFF()})}
 buildFF();
 $('#feed').addEventListener('click',e=>{const li=e.target.closest('li');if(!li||(G&&G.dead))return;li.classList.toggle('star');try{saveGame()}catch(x){}});
-document.addEventListener('click',e=>{if(e.target.closest('[data-act="share"]'))shareImg();if(e.target.closest('#totop'))window.scrollTo({top:0,behavior:'smooth'})});
+document.addEventListener('click',e=>{if(e.target.closest('[data-act="share"]'))shareImg('share');if(e.target.closest('[data-act="saveimg"]'))shareImg('save');if(e.target.closest('#totop'))window.scrollTo({top:0,behavior:'smooth'})});
 window.addEventListener('scroll',()=>{$('#totop').hidden=window.scrollY<400},{passive:true});
 
-function shareText(m){return (m?m+'\n':'')+EPI.txt.join('\n')}
+const GAMEURL=/^https?:/.test(location.protocol)?location.origin+location.pathname:'https://m00nssaem12.github.io/joseon/';
+function shareText(m){return (m?m+'\n':'')+EPI.txt.join('\n')+'\n'+GAMEURL}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t)return;
   if(t.dataset.act==='lastlook'){const l=$('#lastl');l.hidden=!l.hidden}
   if(t.dataset.act==='copytxt'){const a=$('#epitxt');a.select();(navigator.clipboard?navigator.clipboard.writeText(a.value):Promise.reject()).catch(()=>document.execCommand('copy')).then(()=>{t.textContent='복사됨'})}});
@@ -3614,6 +3684,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
   else if(a==='resume')resumeLife(store.get('jo.save',null));
   else if(a==='title'||a==='again')renderTitle();
   else if(a==='dex')showDex();
+  else if(a==='stab'){$('#side').dataset.tab=v;document.querySelectorAll('#sidetabs button').forEach(x=>x.classList.toggle('on',x.dataset.v===v))}
   else if(a==='board')showBoard();
   else if(a==='bdmode'){BDM=v==='today'?'today':'all';showBoard()}
   else if(a==='codeok')codeOk();
