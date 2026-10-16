@@ -614,7 +614,7 @@ const JOBS={
 const NOBIJOB=['mfarm','craft','kitchen','nanny'];
 function jobChoices(g){const m=g.sex==='m',c=g.cls,y=g.year+g.age;let base,late=[];if(g.flags&&(g.flags.has('gungnyeo')||g.flags.has('naegwan')))return [];
   if(c==='pyung'){base=m?['farm',COAST(g)?'fish':'smith','peddler']:['weave','sew',REG(g)==='jeju'?'haenyeo':'farm'];late=m?['gongin','gyeonggang','mine','ginseng','jeongisu','sorikkun','pumpal','minhwa']:['tteok','ginseng','pumpal','jumak','yangjam']}
-  else if(c==='jung'){base=m?['interp','doctor','painter']:['sew','weave','doctor'];late=m?['gongin','jeongisu','minhwa']:['tteok','pilsa','yangjam']}
+  else if(c==='jung'){base=m?['interp','doctor','painter']:['sew','weave','yangjam'];late=m?['gongin','jeongisu','minhwa']:['tteok','pilsa','yangjam']}
   else if(c==='cheon'){base=g.sub==='gwangdae'?['julta','talnori']:g.sub==='mudang'?['gut','sew']:['dosal','gori'];late=g.sub==='gwangdae'?['sorikkun']:['pumpal']}
   else if(c==='nobi'){base=m?['mfarm','craft',COAST(g)?'fish':'mfarm']:['kitchen','weave','nanny'];late=m?['mine','pumpal']:[]}
   else if(c==='yang'||c==='gwi'){base=m?['study','landlord','hermit']:['house','weave','yangjam'];late=m&&g.flags.has('seoeol')?['interp','doctor','ginseng']:m?[]:['pilsa']}
@@ -622,7 +622,14 @@ function jobChoices(g){const m=g.sex==='m',c=g.cls,y=g.year+g.age;let base,late=
   base=[...new Set(base)];late=late.filter(k=>JOBS[k][3]&&y>=JOBS[k][3]&&!base.includes(k));
   for(let i=late.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[late[i],late[j]]=[late[j],late[i]]}
   return base.concat(late.slice(0,2))}
-function jobTick(){if(!G||!G.job2||!JOBS[G.job2]||G.age>=66)return;const r=JOBS[G.job2][2](),fx={};for(const k in r)if(k!=='m')fx[k]=r[k];applyFx(fx);
+function homeTick(){if(!G||(G.rf&&G.cls!=='wang'))return;const a=G.age,c=G.cls,y=G.year+a,coin=y>=1678;
+  if(a>=5&&a<16&&!G.flags.has('gungnyeo')&&!G.flags.has('naegwan')){const r={wang:1.5,gwi:1,yang:.6,jung:.45,pyung:.15,cheon:.08,nobi:0}[c]||0,v=rint(r);if(v)applyFx({wl:v});
+    if(r&&Math.random()<r*.12){const L={wang:R(['설날 대전에 세배를 드리자 임금께서 비단과 노리개를 내려 주셨다.','대비전에 문안을 드리니 할마마마께서 귀한 붓과 벼루를 상으로 내리셨다.','글을 잘 외웠다고 아바마마께서 비단 주머니에 담은 은붙이를 하사하셨다.','명절을 맞아 내수사에서 왕실 자손에게 내리는 물품이 처소로 들어왔다.']),gwi:'할아버지께서 '+(coin?'엽전 꾸러미':'귀한 먹과 종이')+'를 쥐여 주시며 "아껴 쓰거라" 하셨다.',yang:'아버지께서 붓과 종이 값으로 '+(coin?'엽전 몇 닢을':'쌀 한 되를')+' 주셨다.',jung:'아버지가 일을 도운 값으로 '+(coin?'엽전 몇 닢을':'떡 한 덩이를')+' 주셨다.',pyung:'장날 어머니가 '+(coin?'엽전 한 닢을':'곶감 하나를')+' 쥐여 주셨다. 아끼고 아껴 두었다.',cheon:'잔칫집 일을 거들고 '+(coin?'엽전 한 닢을':'떡 한 조각을')+' 얻었다.'}[c];if(L)addLog(a,L,{note:'조선 시대에는 정해진 용돈은 없었지만, 집안 형편에 따라 어른들이 아이에게 돈이나 먹을거리를 쥐여 주는 정도가 크게 달랐어요.'})}}
+  if(a>=16&&!G.flags.has('fallen')){const r={gwi:.9,yang:.45,wang:1}[c]||0,v=rint(r);if(v)applyFx({wl:v})}}
+function spouseTick(){if(!G||G.rf||!G.flags.has('married')||G.flags.has('widowed')||G.flags.has('gungnyeo'))return;const a=G.age;if(a>=70)return;
+  const m=G.sex==='m',c=G.cls,base={gwi:1.1,yang:.8,jung:.8,pyung:.7,cheon:.5,nobi:.4,wang:1}[c]||.6,inc=rint(base*(a>=60?.5:1));if(inc)applyFx({wl:inc});
+  if(Math.random()<.08){const W=m?{yang:'아내가 살림을 알뜰히 꾸리고 길쌈으로 모은 베를 장에 내다 팔았다.',gwi:'아내가 안살림을 빈틈없이 꾸려 곳간이 넉넉해졌다.',jung:'아내가 바느질 품을 팔아 살림에 보탰다.',pyung:'아내가 밤새 짠 베를 장에 내다 팔아 살림에 보탰다.',nobi:'아내가 주인댁 부엌일 틈틈이 품을 팔아 몇 푼을 모았다.',cheon:'아내가 고리와 짚신을 엮어 장에 내다 팔았다.'}:{yang:'남편이 문중 땅에서 거둔 소작료로 한 해 살림을 꾸렸다.',gwi:'남편의 녹봉과 땅에서 거둔 곡식으로 곳간이 넉넉해졌다.',jung:'남편이 일하고 받은 삯을 살림에 보탰다.',pyung:'남편이 농사짓고 품을 팔아 번 곡식을 집에 들였다.',nobi:'남편이 주인댁 일을 하고 받은 곡식을 나누어 살림을 꾸렸다.',cheon:'남편이 일하고 받은 삯으로 살림을 꾸렸다.'};addLog(a,'[살림] '+(W[c]||(m?'아내가 살림을 알뜰히 꾸렸다.':'남편이 벌어 온 것으로 살림을 꾸렸다.')),{tone:'good'})}}
+function jobTick(){homeTick();spouseTick();if(!G||!G.job2||!JOBS[G.job2]||G.age>=66)return;const r=JOBS[G.job2][2](),fx={};for(const k in r)if(k!=='m')fx[k]=r[k];applyFx(fx);
   if(r.m&&Math.random()<.5)addLog(G.age,'['+JOBS[G.job2][0]+'] '+r.m,{tone:(fx.wl||0)<0||(fx.hp||0)<0?'bad':'good'})}
 const KA=(g,f,d)=>g.kl&&g.kl.length?g.kl.some(k=>k.d==null&&f(g.age-k.b)):d(g);
 const FAM1=['봄이 되어도 서리와 우박이 쏟아져 싹이 얼어 죽는다. 곡식이 여물지 않는다.','굶주린 사람들이 길가에 쓰러지고 전염병(여역)까지 돈다. 큰 흉년이다.'];
@@ -661,9 +668,10 @@ const EV=[
  c:[{t:'역과(통역관)에 도전한다',chk:{s:'lr',n:60,ok:{fx:{wl:22,hn:6},flag:'official',r:'사역원 역관이 되어 중국 사행길을 오가게 되었다.'},ng:{fx:{lr:3},r:'떨어졌지만 한어 실력은 부쩍 늘었다.'}}},
     {t:'의과(의관)에 도전한다',chk:{s:'lr',n:55,ok:{fx:{wl:14,hn:8},flag:'official',r:'혜민서 의관이 되었다. 병든 백성들이 찾아온다.'},ng:{fx:{lr:3},r:'떨어졌지만 약재 이름은 모두 외웠다.'}}},
     {t:'장사에 뛰어든다',fx:{wl:10,hn:-1},r:'발품을 판 만큼 엽전이 쌓였다.'}]},
-{id:'uinyeo',loc:'office',a:[16,34],who:['yang','jung','pyung'],sex:'f',w:3.5,req:g=>!g.flags.has('official'),t:'의녀 선발',
- p:['내의원에서 의녀를 뽑는다는 방이 붙었다.','침과 약을 다루는 여인의 길. 쉽지 않지만 마음이 끌린다.'],
- c:[{t:'의녀 시험에 응시한다',chk:{s:'lr',n:55,ok:{fx:{hn:14,wl:12,lr:5},flag:'official',job:'uinyeo',r:'의녀가 되어 궁궐의 약방에서 일하게 되었다.'},ng:{fx:{lr:3,hp:-2},r:'낙방했지만 침 놓는 법을 익혔다.'}}},
+{id:'uinyeo',loc:'office',a:[12,30],who:['nobi'],sex:'f',w:3.5,once:true,req:g=>g.job2!=='uinyeo',t:'의녀 선발',
+ note:'의녀는 여성 환자를 돌보던 여자 의원이에요. 남녀가 유별해 남자 의원이 여성을 진찰하기 어려웠기 때문에, 나라는 주로 관청의 여종(관비) 가운데 영리한 아이를 뽑아 의술을 가르쳤어요. 신분은 낮았지만 실력을 인정받으면 궁궐 내의원에서 일하기도 했어요.',
+ p:['관아에서 여종 가운데 영리한 아이를 뽑아 의녀로 가르친다고 한다.','침과 약을 다루는 여인의 길. 쉽지 않지만 마음이 끌린다.'],
+ c:[{t:'의녀 시험에 응시한다',chk:{s:'lr',n:55,ok:{fx:{hn:14,wl:8,lr:5},job:'uinyeo',r:'의녀가 되어 침과 약을 배우기 시작했다. 실력을 인정받아 궁궐 내의원에서 일하게 되었다.'},ng:{fx:{lr:3,hp:-2},r:'낙방했지만 침 놓는 법을 익혔다.'}}},
     {t:'규방에서 시와 글을 짓는다',fx:{lr:8,hn:5},r:'붓끝에서 나온 시가 이웃 마을까지 소문이 났다.'},
     {t:'집안일과 길쌈에 힘쓴다',fx:{wl:8,bd:4},r:'곱게 짠 베 한 필이 장터에서 후한 값을 받았다.'}]},
 {id:'myeon',loc:'office',a:[16,45],who:['nobi'],w:3.5,req:g=>!g.flags.has('freed'),t:'면천의 길',
@@ -677,7 +685,7 @@ const EV=[
  c:[{t:'비단을 떼어다 되판다',chk:{p:.5,ok:{fx:{wl:20},r:'비단이 순식간에 팔렸다. 엽전이 짤랑짤랑!'},ng:{fx:{wl:-12},r:'비단 값이 폭락해 손해를 봤다.'}}},
     {t:'약재 장사에 나선다',chk:{s:'lr',n:40,ok:{fx:{wl:14,lr:1},r:'약재 이름을 알아본 덕에 제값을 받았다.'},ng:{fx:{wl:-5},r:'가짜 약재를 비싸게 사 버렸다.'}}},
     {t:'국밥 한 그릇에 구경만 한다',fx:{hp:3,bd:3,wl:-2},r:'뜨끈한 국밥에 속이 든든하다. 장터 사람들과 수다도 떨었다.'}]},
-{id:'maeum',loc:'market',a:[13,24],w:5,once:true,req:g=>!g.flags.has('married')&&!g.flags.has('betrothed')&&!g.flags.has('gungnyeo')&&!g.rf&&!(g.hf&&HF()&&HF().ev.some(x=>x[2]&&x[2].married)),t:'마음에 둔 사람',
+{id:'maeum',loc:'market',a:[13,24],w:3,once:true,req:g=>g.s.bd>=50&&!g.flags.has('married')&&!g.flags.has('betrothed')&&!g.flags.has('gungnyeo')&&!g.rf&&!(g.hf&&HF()&&HF().ev.some(x=>x[2]&&x[2].married)),t:'마음에 둔 사람',
  note:'조선 시대에는 남녀가 자유롭게 만나기 어려웠어요. 그래도 단오의 그네뛰기, 빨래터와 우물가, 장날처럼 사람들이 모이는 때에 서로 눈길을 주고받기도 했어요. 혼인은 대개 집안 어른이 정했지만, 마음에 둔 사람을 어른께 조심스레 말씀드리는 일도 있었어요.',
  p:g=>{const sc=g.sex==='m'?R(['단옷날, 그네를 뛰는 이웃 마을 처녀의 댕기가 바람에 날렸다. 눈을 뗄 수가 없었다.','우물가에서 물동이를 이고 가던 처녀가 미끄러질 뻔해 얼른 붙잡아 주었다.','장날 비단 가게 앞에서 마주친 처녀가 수줍게 웃고 지나갔다.']):R(['단옷날 그네를 뛰다 고개를 돌리니, 씨름판의 한 총각과 눈이 마주쳤다.','빨래터에 물을 길으러 온 이웃 총각이 무거운 빨래 함지를 들어 주었다.','장날 엿장수 앞에서 마주친 총각이 엿가락 하나를 건네고 달아났다.']);return [sc,'그날 이후 자꾸만 그 얼굴이 떠오른다.']},
  c:g=>{const nm=R(g.sex==='m'?['순이','옥분','점례','분이','막례','귀덕']:['돌쇠','만복','칠성','갑동','덕보','순돌']);return [
@@ -738,11 +746,11 @@ const EV=[
    if(c==='nobi')return [{t:'주인댁 도련님 공부를 어깨너머로라도 듣게 한다',fx:{bd:2},ked:'ear',r:'"들키지 않게 조심하거라." 아이가 눈을 반짝였다.'},{t:'일찍부터 일을 가르친다',fx:{wl:3},ked:'work',r:'아이가 고사리손으로 일을 거들기 시작했다.'}];
    if(son)return [hi?{t:'이름난 스승을 집으로 모셔 온다',need:{wl:25},fx:{wl:-25,hn:3},ked:'master',r:'고을에서 이름난 선비를 스승으로 모셨다. 글 읽는 소리가 밤늦게까지 들린다.'}:null,
      {t:'서당에 보내 글공부를 시킨다',need:{wl:8},fx:{wl:-8},ked:'study',r:'훈장님께 책씻이 떡을 약속하고 아이를 서당에 보냈다.'},
-     {t:'내가 직접 글을 가르친다',fx:{lr:2,hp:-1},ked:'home',r:'저녁마다 등잔 아래 아이와 마주 앉아 《천자문》을 읽었다.'},
+     {t:'내가 직접 글을 가르친다',fx:{bd:3,hp:-1},ked:'home',r:'저녁마다 등잔 아래 아이와 마주 앉아 《천자문》을 읽었다.'},
      {t:'일찍부터 일을 가르친다',fx:{wl:4},ked:'work',r:'"글보다 일솜씨가 먼저다." 아이가 일을 거들기 시작했다.'}].filter(Boolean);
-   return [{t:'한글과 《소학》을 가르친다',fx:{lr:1},ked:'eon',r:'아이가 한 글자 한 글자 또박또박 따라 썼다.'},
+   return [{t:'한글과 《소학》을 가르친다',fx:{bd:2},ked:'eon',r:'아이가 한 글자 한 글자 또박또박 따라 썼다.'},
      hi||c==='jung'?{t:'오라비 어깨너머로 한문까지 익히게 둔다',fx:{bd:1},ked:'study',r:'"여자아이가 무슨 한문을…" 하는 말도 있었지만 아이는 곧잘 따라 읽었다.'}:null,
-     {t:'바느질과 길쌈을 가르친다',fx:{wl:2},ked:'craft',r:'아이의 바느질 땀이 날마다 고와진다.'}].filter(Boolean)}},
+     {t:'바느질과 길쌈을 가르친다',fx:{wl:1,bd:1},ked:'craft',r:'아이의 바느질 땀이 날마다 고와진다.'}].filter(Boolean)}},
 {id:'kidplan',loc:'home',a:[16,48],w:14,req:g=>g.flags.has('married')&&!g.flags.has('widowed')&&!g.flags.has('gungnyeo')&&!g.rf&&(g.sex==='f'?g.age<=42:g.age<=50)&&(g.kids||0)<6&&(g.kplan==null||(g.kplan==='wait'&&g.age-(g.kAsk||0)>=3)),t:'아이를 가질까',
  note:'조선 시대에는 자식을 많이 두는 것을 큰 복으로 여겼고, 특히 대를 이을 아들을 중요하게 생각했어요. 하지만 아이가 다섯 살을 넘기기 어려웠고, 아이를 낳다 목숨을 잃는 어머니도 많았어요. 오늘날처럼 마음대로 정하기는 어려웠지만, 이 게임에서는 직접 골라 볼 수 있어요.',
  p:g=>(g.kids||0)?[g.sex==='m'?'아이들 웃음소리가 마당에 가득하다. 아내와 마주 앉아 이야기를 나누었다.':'아이들 웃음소리가 마당에 가득하다. 남편과 마주 앉아 이야기를 나누었다.',['집안 어른','"자식은 많을수록 복이라더라. 하나 더 보는 게 어떠냐?"']]:[g.sex==='m'?'혼인한 지 몇 해. 아내와 앞날을 이야기했다.':'혼인한 지 몇 해. 남편과 앞날을 이야기했다.',['집안 어른','"이제 손주 볼 날만 기다린다. 삼신할미께 빌어 보려무나."']],
@@ -770,18 +778,18 @@ const EV=[
 {id:'doljan2',loc:'home',a:[19,52],w:1,once:true,req:()=>false,t:'돌잡이',
  note:'첫돌에는 돌상에 쌀, 실, 붓, 활, 엽전 등을 올려 아이가 무엇을 집는지 보며 앞날을 점쳤어요. 수수팥떡은 나쁜 기운을 막는다고 믿었어요.',
  p:['돌상에 쌀과 실, 붓, 활, 엽전이 놓였다. 아이가 무엇을 집을까?'],
- c:[{t:'붓에 손을 뻗는다',fx:{bd:7,lr:2},r:'아이가 붓을 덥석 집었다. "글재주가 있겠구나!" 어른들이 껄껄 웃으셨다.'},
-    {t:'엽전에 손을 뻗는다',fx:{bd:7,wl:4},r:'아이가 엽전을 꼭 움켜쥐었다. "재물 복이 있겠구나!" 모두 박수를 쳤다.'},
-    {t:'활에 손을 뻗는다',fx:{bd:7,hn:2},r:'아이가 활을 번쩍 들었다. "씩씩한 기개가 있겠구나!" 어른들이 흐뭇해하셨다.'},
-    {t:'실에 손을 뻗는다',fx:{bd:7,hp:2},r:'아이가 실타래를 끌어안았다. "오래오래 살겠구나!" 어른들이 덕담을 건넸다.'},
-    {t:'쌀에 손을 뻗는다',fx:{bd:7,wl:2,hp:1},r:'아이가 쌀을 한 줌 쥐고 웃었다. "평생 먹을 복이 있겠구나!" 모두 즐거워했다.'}]},
+ c:[{t:'붓에 손을 뻗는다',fx:{bd:6},dol:'lr',r:'아이가 붓을 덥석 집었다. "글재주가 있겠구나!" 어른들이 껄껄 웃으셨다.'},
+    {t:'엽전에 손을 뻗는다',fx:{bd:6},dol:'wl',r:'아이가 엽전을 꼭 움켜쥐었다. "재물 복이 있겠구나!" 모두 박수를 쳤다.'},
+    {t:'활에 손을 뻗는다',fx:{bd:6},dol:'hn',r:'아이가 활을 번쩍 들었다. "씩씩한 기개가 있겠구나!" 어른들이 흐뭇해하셨다.'},
+    {t:'실에 손을 뻗는다',fx:{bd:6},dol:'hp',r:'아이가 실타래를 끌어안았다. "오래오래 살겠구나!" 어른들이 덕담을 건넸다.'},
+    {t:'쌀에 손을 뻗는다',fx:{bd:6},dol:'rice',r:'아이가 쌀을 한 줌 쥐고 웃었다. "평생 먹을 복이 있겠구나!" 모두 즐거워했다.'}]},
 {id:'agi',loc:'home',a:[20,55],w:2.2,req:g=>KA(g,x=>x<=10,g=>(g.kids||0)>=1),t:'아이의 열병',
  note:'옛날에는 마마(천연두)와 홍역으로 어린 나이에 아이를 잃는 일이 많았어요. 호환마마라는 말이 있을 만큼 마마는 두려운 병이었어요.',
  p:['아이가 밤새 열에 들떠 보챈다. 마마나 홍역일지도 모른다.',['이웃 할멈','"어서 의원부터 부르게!"']],
  c:[{t:'의원을 불러 약을 짓는다',need:{wl:12},fx:{wl:-12,bd:4},r:'약을 먹이니 열이 내렸다. 아이가 새근새근 잠들었다.'},
     {t:'무당을 불러 굿을 한다',chk:{p:.4,ok:{fx:{wl:-5,bd:6},r:'굿을 마치자 열이 내렸다. 정성이 통했나 보다.'},ng:{fx:{wl:-5,hp:-6,bd:-8},kid:-1,r:'열이 끝내 내리지 않았다. 아이를 가슴에 묻었다.'}}},
     {t:'밤새 곁에서 간호한다',chk:{p:.6,ok:{fx:{hp:-4,bd:8},r:'꼬박 사흘 밤을 새운 끝에 열이 내렸다.'},ng:{fx:{hp:-8,bd:-6},kid:-1,r:'정성도 소용이 없었다. 아이는 끝내 눈을 뜨지 못했다.'}}}]},
-{id:'jasik',loc:'home',a:[30,68],w:2.5,once:true,req:g=>KA(g,x=>x>=14,g=>g.age>=44&&(g.kids||0)>=1),t:'자식의 혼사',
+{id:'jasik',loc:'home',a:[30,68],w:2.5,once:true,req:()=>false,t:'자식의 혼사',
  note:'예전에는 부모가 자녀의 혼사를 정하고 혼수를 장만했어요. 양가가 사주단자와 함을 주고받으며 혼례 준비를 했어요.',
  p:['어느덧 아이가 혼인할 나이가 되었다.',['중매쟁이','"참한 집안에서 사주단자가 왔다우."']],
  c:[{t:'혼수를 넉넉히 장만해 혼례를 올린다',need:{wl:18},fx:{wl:-18,bd:10,hn:8},r:'함이 들어오고 혼례상이 차려졌다. 친지들이 모여 두고두고 칭찬했다.'},
@@ -819,7 +827,7 @@ const EV=[
  c:[{t:'의병에 투신한다',chk:{s:'hp',n:45,ok:{fx:{hn:25,hp:-6,bd:6},r:'의병장 곁에서 끝까지 싸웠다. 이름이 널리 퍼졌다.'},ng:{fx:{hn:8,hp:-20},r:'크게 다쳤지만 그 용기는 사람들 마음에 남았다.'}}},
     {t:'봇짐을 싸서 산으로 피난한다',fx:{wl:-12,hp:-2,bd:2},r:'산속에서 한 철을 났다. 모두 살아 돌아온 것만으로 다행이다.'},
     {t:'곡식을 모아 의병에 보탠다',need:{wl:15},fx:{wl:-15,hn:12,bd:4},r:'군량미를 실은 수레를 바라보며 마음이 뿌듯해졌다.'}]},
-{id:'nong',loc:'field',a:[18,65],w:1.8,t:'두레 모내기',
+{id:'nong',loc:'field',a:[18,65],who:['pyung','nobi','cheon'],w:1.8,t:'두레 모내기',
  p:['모내기철, 두레패의 풍물 소리가 논둑을 울린다.'],
  c:[{t:'두레에 끼어 함께 모를 심는다',fx:{bd:6,wl:6,hp:-2},r:'허리는 아프지만 노랫가락에 힘이 났다.'},
     {t:'새참과 시원한 물을 나른다',fx:{bd:4,hp:1},r:'"고맙네!" 시원한 식혜 한 사발을 얻어 마셨다.'},
@@ -1050,7 +1058,7 @@ const EV=[
     {t:'어머니 곁에서 살림을 익힌다',fx:{bd:5,wl:2},r:'어머니와 함께 길쌈을 하며 마음을 다잡았다.'},
     {t:'몰래 책을 읽으며 마음을 다스린다',fx:{lr:6},r:'책 속에서는 누구도 나를 차별하지 않았다.'},
     {t:'혼처 걱정을 하는 어머니를 위로한다',fx:{bd:6,hp:1},r:'"좋은 사람을 만날 거예요." 어머니의 손을 꼭 잡아 드렸다.'}]},
-{id:'heotong',loc:'office',a:[15,60],w:12,once:true,req:g=>g.flags.has('seoeol')&&Y(1777,1800)(g),t:'서얼허통과 규장각 검서관',
+{id:'heotong',loc:'office',a:[15,60],sex:'m',w:12,once:true,req:g=>g.flags.has('seoeol')&&Y(1777,1800)(g),t:'서얼허통과 규장각 검서관',
  note:'정조는 1777년 서얼허통절목을 만들어 서얼도 일부 벼슬에 오를 수 있게 했어요. 1779년에는 규장각에 검서관을 두고 이덕무·박제가·유득공·서이수 같은 서얼 출신 학자를 뽑았어요.',
  p:['임금께서 서얼도 벼슬길에 나설 수 있게 하셨다는 소식이 들려왔다.','규장각에서 책을 다룰 검서관을 뽑는다고 한다.'],
  c:[{t:'검서관 시험에 도전한다',chk:{s:'lr',n:55,ok:{fx:{hn:18,lr:5,wl:6},flag:'official',r:'규장각 검서관으로 뽑혔다! 서얼 출신 학자들과 함께 나라의 책을 다룬다.'},ng:{fx:{lr:3},r:'이번엔 떨어졌지만, 길이 열렸다는 것만으로 가슴이 벅차다.'}}},
@@ -1222,7 +1230,7 @@ const EV=[
 {id:'p_anchangho',h:1,loc:'school',a:[10,70],w:9,once:true,req:g=>g.year+g.age>=1907&&g.year+g.age<=1910&&/평안도/.test(g.place||''),t:'대성학교의 안창호',
  note:'안창호는 1907년 비밀 단체 신민회를 만들고, 1908년 평양에 대성학교를 세웠어요. 교육으로 실력을 길러 나라를 되찾자고 했고, 거짓 없는 정직한 사람이 되자고 늘 강조했어요.',
  p:['평양에 새 학교가 문을 열었다. 학생들의 우렁찬 노랫소리가 들린다.',['안창호','"나 하나 건전한 사람이 되는 것이 나라를 건지는 길이오."']],
- c:[{t:'학교에 들어가거나 자식을 보낸다',fx:{lr:7,hn:3},r:'새 학문과 체조, 노래를 배우는 교실이 활기찼다.'},{t:'학교 세우는 데 돈을 보탠다',need:{wl:6},fx:{wl:-6,hn:7},r:'"이 돈이 나라를 일으킬 것이오." 손을 맞잡았다.'},{t:'멀리서 지켜만 본다',fx:{hp:1},r:'학생들의 노랫소리가 오래 귓가에 맴돌았다.'}]},
+ c:g=>[g.age<=20?{t:'학교에 들어가 새 학문을 배운다',fx:{lr:7,hn:3},r:'새 학문과 체조, 노래를 배우는 교실이 활기찼다.'}:(g.kl||[]).some(k=>k.d==null&&!k.out&&g.age-k.b>=7)?{t:'자식을 학교에 보낸다',need:{wl:4},fx:{wl:-4,hn:3,bd:2},r:'새 학문을 배우러 가는 아이의 뒷모습이 듬직했다.'}:{t:'밤에 열리는 강습회에 나가 새 학문을 배운다',fx:{lr:5,hp:-1},r:'일을 마치고 등불 아래 모여 새 학문을 배웠다.'},{t:'학교 세우는 데 돈을 보탠다',need:{wl:6},fx:{wl:-6,hn:7},r:'"이 돈이 나라를 일으킬 것이오." 손을 맞잡았다.'},{t:'멀리서 지켜만 본다',fx:{hp:1},r:'학생들의 노랫소리가 오래 귓가에 맴돌았다.'}]},
 {id:'p_heojun',h:1,loc:'home',a:[5,78],w:8,once:true,req:g=>g.year+g.age>=1600&&g.year+g.age<=1614&&/한양/.test(g.place||''),t:'어의 허준',
  note:'허준(1539~1615)은 임금의 병을 돌보던 어의예요. 우리 땅에서 나는 약재로 병을 고치는 방법을 모아 1610년 《동의보감》을 완성했어요. 이 책은 오늘날 유네스코 세계기록유산이에요.',
  p:['식구가 열이 올라 앓아누웠다. 마침 이웃에 이름난 의원이 들렀다.',['허준','"우리 땅에서 나는 약초로도 병을 고칠 수 있소. 귀한 중국 약재만 찾을 일이 아니오."']],
@@ -3256,7 +3264,7 @@ function updateSpeed(){const sb=$('#speedbar');if(!G){sb.hidden=true;return}sb.h
    '<span class="grow"></span><button data-act="skip" '+(lock?'disabled':'')+'>다음 결정까지 »</button><button data-act="autod" class="'+(G.autoD?'on':'')+'" '+(G.dead?'disabled':'')+'>자동 결정</button><button data-act="invest" '+(lock?'disabled':'')+'>투자</button><button data-act="train" '+(lock?'disabled':'')+'>수련</button>'}
 const GLOSS=Object.fromEntries([["행랑채","대문 옆에 붙어 있던, 하인들이 지내는 집"],["솟을대문","지붕을 높게 솟게 지은 큰 대문. 높은 벼슬아치 집에 있었어요"],["솔거노비","주인집에서 함께 살며 일하던 노비"],["외거노비","따로 살며 농사짓고 주인에게 대가를 바치던 노비"],["면천","노비 신분에서 벗어나 자유로운 사람이 되는 것"],["속량","돈이나 공을 내고 노비에서 풀려나는 것"],["추쇄","도망친 노비를 찾아 붙잡아 주인에게 돌려보내던 일"],["추노","도망친 노비를 쫓아 잡는 일"],["환곡","봄에 곡식을 빌려주고 가을에 갚게 하던 나라의 제도"],["군포","군대에 가는 대신 나라에 바치던 베(천)"],["군역","나라를 지키려고 군대에 가는 의무"],["진휼소","흉년에 굶주린 백성에게 죽과 곡식을 나눠 주던 곳"],["두레","마을 사람들이 힘을 모아 농사일을 함께하던 모임"],["품앗이","일손을 서로 빌려주고 갚는 풍속"],["길쌈","실을 뽑아 베를 짜는 일"],["소작","남의 땅을 빌려 농사짓고 곡식 일부를 바치는 것"],["객주","장사꾼의 물건을 맡아 팔아 주고 묵을 곳도 내주던 상인"],["보부상","봇짐·등짐을 지고 장터를 돌며 장사하던 상인"],["시전","한양 종로 일대에서 나라 허가를 받아 장사하던 상점"],["금난전권","시전 상인이 허가 없는 장사를 막을 수 있던 권리"],["훈장","서당에서 아이들을 가르치던 선생님"],["향교","지방에 있던 나라 학교"],["성균관","한양에 있던 가장 높은 나라 학교"],["유생","공자의 가르침(유학)을 공부하는 학생"],["잡과","의사·통역관 같은 기술 관리를 뽑던 시험"],["의관","나라 의료 기관에서 일하던 의사"],["역관","통역을 맡던 관리"],["율관","법을 다루던 관리"],["중인","양반 아래, 평민 위. 의사·통역관 같은 기술직 신분"],["판서","오늘날 장관에 해당하는 높은 관리"],["정승","오늘날 총리에 해당하는 가장 높은 관리"],["대사헌","관리의 잘못을 살피던 관청의 책임자"],["음서","높은 벼슬아치의 자손이 시험 없이 벼슬에 나가던 제도"],["청백리","청렴한 관리"],["탐관","뇌물을 받는 욕심 많은 관리"],["암행어사","임금이 몰래 보내 관리를 감시하던 관리"],["상소","임금에게 올리던 글"],["유배","죄를 지어 먼 곳으로 쫓겨나는 벌 (귀양)"],["사약","임금이 죄인에게 내리던 독약"],["역모","임금을 몰아내려는 반역"],["의금부","역모 같은 큰 죄를 조사하던 관청"],["나졸","관아에서 죄인을 잡고 심부름을 하던 사람"],["금부도사","의금부에서 죄인을 잡으러 가던 관리"],["국문","죄인을 따져 묻는 재판"],["고변","반역을 꾸미는 일을 관아에 알리는 것"],["연좌제","한 사람의 죄로 가족까지 벌을 받던 제도"],["옥사","역모 같은 큰 사건을 다루는 재판"],["곤장","죄인을 때리던 넓적한 몽둥이"],["사주단자","혼인할 사람의 태어난 해·달·날·시를 적은 종이"],["사주","태어난 해·달·날·시. 운명을 본다고 믿었어요"],["궁합","두 사람이 잘 맞는지 보는 점"],["혼수","혼인할 때 마련하는 살림살이와 옷감"],["함진아비","예물 상자(함)를 지고 앞서 가는 사람"],["초례청","혼례를 치르는 마당"],["초례상","혼례 때 차리는 상"],["전안례","신랑이 신부 집에 기러기를 바치는 절차"],["합근례","신랑 신부가 표주박 술잔을 나누는 절차"],["폐백","혼례 뒤 신부가 시댁 어른께 올리는 첫인사"],["활옷","신부가 입는 화려한 혼례복"],["족두리","신부가 머리에 얹는 장신구"],["연지곤지","신부가 볼과 이마에 찍는 붉은 화장"],["사모관대","신랑이 입는 관복 차림의 혼례복"],["시집살이","시댁 어른을 모시며 집안일을 하는 생활"],["근친","시집간 딸이 친정에 다녀오는 일"],["처가살이","혼인 뒤 아내의 집에서 사는 것"],["삼신할미","아기를 점지하고 돌본다고 믿던 신"],["삼신상","삼신할미께 올리는 상"],["정화수","새벽에 길어 온 맑은 물. 정성껏 빌 때 올렸어요"],["산파","아기 받는 일을 하던 사람"],["금줄","나쁜 기운을 막으려고 대문에 거는 새끼줄"],["삼칠일","아기가 태어난 지 21일"],["돌잡이","첫돌에 아기가 물건을 집게 해 앞날을 점치는 놀이"],["수수팥떡","나쁜 기운을 막는다고 믿고 돌상에 올리던 붉은 떡"],["마마","천연두. 얼굴에 자국이 남던 무서운 전염병"],["호환","호랑이에게 입는 피해"],["동제","마을의 평안을 비는 제사"],["서낭당","마을 어귀에서 마을을 지켜 준다고 믿던 신을 모신 곳"],["당산나무","마을을 지켜 준다고 믿던 큰 나무"],["환갑","만 60세 생일 잔치. 오래 살면 큰 경사였어요"],["문안","어른께 안부를 여쭙는 인사"],["규수","혼인하지 않은 양반집 처녀"],["간택","여러 사람 중에서 골라 뽑는 일"],["가례","왕실의 혼례"],["부마","공주나 옹주의 남편"],["작호","왕실 자녀에게 내리는 칭호"],["옹주","후궁이 낳은 임금의 딸"],["대비전","임금의 어머니(대비)가 지내는 궁궐 처소"],["대비마마","임금의 어머니, 또는 선왕의 왕비"],["상궁","궁궐에서 높은 자리에 있던 궁녀"],["나인","궁궐에서 일하던 궁녀"],["내관","궁궐에서 임금을 모시던 관리(내시)"],["교지","임금이 내리는 명령서"],["서연","세자(왕자)의 공부 시간"],["경서","유교의 중요한 책들"],["태실","왕실 아기의 태(탯줄)를 묻어 모시던 곳"],["태항아리","태(탯줄)를 담아 묻는 항아리"],["길지","풍수로 보아 좋다는 땅"],["풍수","땅의 기운으로 좋은 터를 고르는 지식"],["종친","왕실의 친척"],["향약","마을 사람들이 서로 돕고 잘못을 바로잡자는 규약"],["문중","같은 조상을 둔 친척 모임"],["가숙","집안에서 차린 작은 서당"],["사랑방","바깥주인이 손님을 맞던 방"],["붕당","뜻이 같은 사람끼리 모인 정치 무리"],["족보","집안 대대의 이름을 적은 책"],["격쟁","임금 행차 때 징·꽹과리를 쳐 억울함을 알리던 일"],["근왕병","임금을 지키려고 모인 군사"],["부역","나라 공사에 불려 가 힘을 보태는 일"],["공물","지방에서 나라에 바치던 특산물"],["방납","공물을 대신 바치고 값을 부풀리던 일"],["대동법","특산물 대신 쌀로 세금을 내게 한 제도"],["균역법","군포 부담을 줄여 준 법"],["거중기","무거운 돌을 들어 올리던 기계"],["단발령","상투를 자르게 한 명령"],["갑오개혁","1894년에 시작된 근대 개혁"],["개화","서양 문물을 받아들이자는 흐름"],["삼남","충청·전라·경상 세 지방"],["명재상","나라를 잘 이끈 훌륭한 재상"],["구휼","굶주린 사람을 도와줌"],["시회","시를 지으며 어울리는 모임"],["혜민서","가난한 백성을 치료하던 관청"],["사역원","통역관을 기르고 일하던 관청"],["문벌","대대로 이어진 집안의 격"],["분재기","부모가 자식들에게 재산을 나눠 주며 쓴 문서"],["윤회봉사","형제자매가 돌아가며 조상 제사를 맡던 풍습"],["종가","맏아들로 대를 이어 온 집안의 큰집"],["종손","종가의 대를 잇는 맏자손"],["반친영","신부 집에서 혼례를 올리고 며칠 뒤 신부를 데려오는 혼례"],["신행","혼례를 마친 신부가 시댁으로 들어가는 일"],["양자","대를 잇기 위해 친척의 아들을 자식으로 들이는 것"],["수절","남편을 잃은 여자가 다시 혼인하지 않고 지내는 것"],["재가","남편을 잃은 여자가 다시 시집가는 것"],["재취","아내를 잃은 남자가 다시 장가드는 것"],["열녀","절개를 지킨 여자로 칭송받은 사람"],["종묘","조선 역대 임금과 왕비의 신주를 모신 사당"],["금혼령","왕실 간택 동안 처녀들의 혼인을 멈추게 한 명령"],["처녀단자","간택에 나갈 처녀의 이름과 집안을 적어 올린 문서"],["세자빈","왕세자의 아내"],["공명첩","이름 칸을 비워 둔 채 팔던 관직 임명장"],["납속","나라에 곡식이나 돈을 바치는 것"],["서얼","양반과 첩 사이에서 태어난 자녀"],["허통","막혀 있던 벼슬길을 열어 주는 것"],["검서관","규장각에서 책을 베끼고 살피던 관리"],["출륙금지령","제주 사람이 섬 밖으로 나가지 못하게 한 명령"],["이양선","모양이 낯선 외국 배, 주로 서양 배"],["왜관","일본 사람들이 머물며 장사하던 곳"],["공인","대동법 뒤 나라에 필요한 물건을 사서 바치던 상인"],["경강상인","한강 뱃길로 물건을 실어 나르던 상인"],["전기수","소설을 소리 내어 읽어 주고 돈을 받던 이야기꾼"],["천민","노비·백정·광대·무당처럼 가장 낮은 신분으로 여겨진 사람들"],["백정","소를 잡거나 버들고리를 만들던 천민"],["광대","줄타기·탈놀이·소리 같은 재주를 부리던 사람"],["패랭이","대나무로 엮은 모자. 천민이 쓰게 했어요"],["형평운동","1923년 백정들이 차별을 없애자며 일으킨 운동"],["을사늑약","1905년 일본이 대한제국의 외교권을 강제로 빼앗은 조약"],["애국 계몽 운동","학교·신문으로 실력을 길러 나라를 지키자는 운동"],["국채","나라가 진 빚"],["경술국치","1910년 나라의 주권을 일본에 빼앗긴 일"],["제례악","종묘 제례 때 연주하던 음악"],["책봉","왕세자·왕비 등의 자리에 정식으로 앉히는 일"],["즉위","임금의 자리에 오르는 것"],["승하","임금이나 왕비가 세상을 떠나는 것"],["대리청정","임금 대신 세자가 나랏일을 맡아 보는 것"],["수렴청정","어린 임금 대신 대비가 나랏일을 돌보는 것"],["세손","임금의 손자로 왕위를 이을 사람"],["세제","임금의 아우로 왕위를 이을 사람"],["국상","임금이나 왕비가 세상을 떠났을 때 나라 전체가 치르는 상"]]);
 const GL_KEYS=Object.keys(GLOSS).sort((a,b)=>b.length-a.length);
-const GL_EXC={'국문':/국문(연구소|헌)/g,'고변':/임술삼고변/g,'두레':/두레박/g};
+const GL_EXC={'마마':/(아바|어마|할|대비|상궁|중전|세자|마님|왕비)마마|마마께서|마마님/g,'국문':/국문(연구소|헌)/g,'고변':/임술삼고변/g,'두레':/두레박/g};
 function glossFind(text){let t=String(text||'');const hits=[];
   for(const k of GL_KEYS){let u=t;if(GL_EXC[k])u=u.replace(GL_EXC[k],m=>' '.repeat(m.length));const i=u.indexOf(k);if(i>=0){hits.push([i,k]);t=t.split(k).join(' '.repeat(k.length))}}
   return hits.sort((a,b)=>a[0]-b[0]).map(h=>h[1])}
@@ -3318,6 +3326,10 @@ const MILE={
  5:()=>G.cls==='nobi'?{t:'어머니를 따라 주인댁 마당을 처음 쓸었다. 빗자루가 키보다 컸다.',fx:{hp:1,bd:1}}:G.cls==='wang'?{t:'궁궐 뜰에서 처음으로 작은 활을 당겨 보았다. 내관들이 박수를 쳤다.',fx:{hp:1,hn:1}}:{t:'어른들을 따라 처음으로 오일장 구경을 갔다. 엿장수의 가위 소리가 신기했다.',fx:{bd:1,lr:1}},
  6:()=>['yang','gwi','wang','jung'].includes(G.cls)?{t:'처음으로 붓을 잡고 제 이름을 따라 써 보았다. 먹물이 얼굴에까지 묻었다.',fx:{lr:2}}:{t:'동네 아이들과 처음으로 자치기와 비석치기를 하며 해 지는 줄 몰랐다.',fx:{bd:2,hp:1},note:'자치기와 비석치기는 막대기와 돌로 하던 옛 아이들의 놀이예요.'}};
 const PASS=[
+ {a:[5,13],who:['pyung','jung','yang','gwi'],req:Y(1678,1910),t:'장날, 할아버지가 엽전 몇 닢을 손에 쥐여 주셨다. 곧장 엿장수 앞으로 달려갔다.',fx:{wl:1,bd:1},note:'조선 시대에는 오늘날처럼 정해진 용돈은 없었어요. 하지만 장날이나 명절에 어른들이 아이에게 엽전 몇 닢이나 먹을거리를 쥐여 주기도 했어요.'},
+ {a:[7,14],who:['pyung','jung','yang','gwi'],req:Y(1678,1910),t:'심부름을 하고 받은 엽전을 복주머니에 꼭꼭 모았다.',fx:{wl:1},note:'상평통보(엽전)는 1678년부터 널리 쓰였어요. 아이들은 복주머니에 엽전을 넣어 다니기도 했어요.'},
+ {a:[5,12],who:['pyung','jung','yang','gwi'],t:'심부름을 잘했다며 어머니가 곶감 하나를 손에 쥐여 주셨다.',fx:{bd:1,hp:1}},
+ {a:[5,12],who:['nobi'],t:'주인댁 마님이 잔칫날 남은 떡 한 덩이를 몰래 쥐여 주었다.',fx:{bd:1,hp:1}},
  {nae:1,a:[9,90],t:'새벽 일찍 궁궐 문을 열고 들어가 하루를 시작했다.',fx:{hp:-1,hn:1}},
  {nae:1,a:[9,30],t:'선배 내관에게 궁궐의 법도와 말씨를 배웠다.',fx:{lr:1}},
  {nae:1,a:[9,90],t:'수라간에서 올라온 임금님 수라상을 살폈다.',fx:{hn:1}},
@@ -3569,7 +3581,7 @@ async function runEvent(ev,id){
     res=Object.assign({},res,{r:res.r+' '+(boy?'대문에 숯과 붉은 고추를 단 금줄이 걸렸다. 아들이다!':'대문에 숯과 푸른 솔가지를 단 금줄이 걸렸다. 딸이다!')+(G.twin===3?' 그런데 아기가 하나 더, 또 하나 더… 세쌍둥이였다! 온 마을이 구경을 왔다. 관아에 알리자 나라에서 쌀과 콩을 내려 주었다.':G.twin===2?' 그런데 아기가 하나 더 나왔다. 쌍둥이였다!':'')});G.twin=0}
   else if((G.kids||0)>0){const kl0=(G.kl||[]).filter(k=>k.d==null),yk=kl0.filter(k=>G.age-k.b<=10),hk=kl0.filter(k=>!k.out),lk=yk.length?R(yk):hk.length?R(hk):kl0.length?R(kl0):null,boy=lk?lk.s==='m':Math.random()<(G.sons||0)/G.kids;if(boy)G.sons=Math.max(0,(G.sons||0)-1);G.kids--;if(lk)lk.d=G.age;res=Object.assign({},res,{r:res.r+(lk?' ('+(boy?'아들':'딸')+' '+josaFix(lk.n+'을(를)')+' 잃었다.)':(boy?' (아들을 잃었다.)':' (딸을 잃었다.)'))})}}
   const d=applyFx(res.fx||{});if(res.unflag==='widowed'){G.flags.delete('widowed');G.flags.add('remarried');if(G.kin){G.kin.sp=G.sex==='m'?rr(-12,-2):rr(-3,6);G.kin.spD=null}}
-  if(res.flag){G.flags.add(res.flag);if(res.flag==='married')G.flags.delete('betrothed');if(res.flag==='gungnyeo'||res.flag==='naegwan'){G.flags.delete('betrothed');setWorld('wang');buildLabels()}if(res.flag==='gungout'){setWorld(G.cls);buildLabels()}}if(res.die&&!G.hf)G.execd=res.die;if(res.inv){G.inv=G.inv||{};G.inv[res.inv]=(G.inv[res.inv]||0)+1}if(res.clr)G.inv={};if(res.flag2)G.flags.add(res.flag2);if(res.job)G.job2=res.job;if(res.cls==='pyung'&&NOBIJOB.includes(G.job2))G.job2=G.sex==='m'?'farm':'weave';if(res.inlaw){ensureFam();G.kin.rp=1;G.flags.add('inlaw')}if(res.mv)G.mv=res.mv;if(res.crush)G.crushN=res.crush;if(res.unflag&&res.unflag!=='widowed')G.flags.delete(res.unflag);if(res.kp){G.kplan=res.kp;G.kAsk=G.age}if(res.ked){const k=eduKid(G);if(k)k.ed=res.ked}if(res.adopt){const A=typeof res.adopt==='object'?res.adopt:{s:'m',min:3,max:10},sx=A.s==='r'?(Math.random()<.5?'m':'f'):A.s,ag=rr(A.min,A.max),used=new Set((G.kl||[]).map(k=>k.n)),nm=R((sx==='m'?['수복','만복','덕수','길동','순돌','영수','태복']:['복례','순덕','옥례','점례','귀례','막순']).filter(x=>!used.has(x)));G.kl=G.kl||[];G.kl.push({n:nm,s:sx,b:G.age-ag,ad:1});G.kids=(G.kids||0)+1;if(sx==='m')G.sons=(G.sons||0)+1;addLog(G.age,josaFix(nm+'이(가)')+' '+ag+'살에 '+(A.s==='m'&&!A.found?'양자로':'우리 식구로')+' 들어왔다.',{tone:'good'})}if(res.hon){const k=honKid(G);if(k){if(res.hon==='wait')k.hw=G.age;else{k.hon=res.hon;k.hy=G.age}}}if(res.flag==='fallen'&&res.cls)G.job2=res.cls==='nobi'?(G.sex==='m'?'mfarm':'kitchen'):(G.sex==='m'?'farm':'weave');if(res.cls){G.cls=res.cls;setWorld(G.cls);buildLabels()}
+  if(res.flag){G.flags.add(res.flag);if(res.flag==='married'){G.flags.delete('betrothed');setTimeout(()=>{try{if(G&&!G.dead)addLog(G.age,'이제 두 사람이 함께 살림을 꾸린다. 해마다 '+(G.sex==='m'?'아내':'남편')+'의 몫이 살림에 보태진다.',{tone:'good',note:'조선 시대 부부는 함께 집안 살림을 꾸렸어요. 남편이 농사·벼슬·장사로 벌어 오면, 아내는 길쌈·바느질·살림으로 재산을 지키고 불렸어요.'})}catch(e){}},0)}if(res.flag==='gungnyeo'||res.flag==='naegwan'){G.flags.delete('betrothed');setWorld('wang');buildLabels()}if(res.flag==='gungout'){setWorld(G.cls);buildLabels()}}if(res.die&&!G.hf)G.execd=res.die;if(res.inv){G.inv=G.inv||{};G.inv[res.inv]=(G.inv[res.inv]||0)+1}if(res.clr)G.inv={};if(res.flag2)G.flags.add(res.flag2);if(res.job)G.job2=res.job;if(res.cls==='pyung'&&NOBIJOB.includes(G.job2))G.job2=G.sex==='m'?'farm':'weave';if(res.inlaw){ensureFam();G.kin.rp=1;G.flags.add('inlaw')}if(res.mv)G.mv=res.mv;if(res.crush)G.crushN=res.crush;if(res.unflag&&res.unflag!=='widowed')G.flags.delete(res.unflag);if(res.kp){G.kplan=res.kp;G.kAsk=G.age}if(res.ked){const k=eduKid(G);if(k)k.ed=res.ked}if(res.dol){const k=(G.kl||[]).filter(k=>k.d==null&&G.age-k.b<=2).slice(-1)[0];if(k)k.dol=res.dol}if(res.adopt){const A=typeof res.adopt==='object'?res.adopt:{s:'m',min:3,max:10},sx=A.s==='r'?(Math.random()<.5?'m':'f'):A.s,ag=rr(A.min,A.max),used=new Set((G.kl||[]).map(k=>k.n)),nm=R((sx==='m'?['수복','만복','덕수','길동','순돌','영수','태복']:['복례','순덕','옥례','점례','귀례','막순']).filter(x=>!used.has(x)));G.kl=G.kl||[];G.kl.push({n:nm,s:sx,b:G.age-ag,ad:1});G.kids=(G.kids||0)+1;if(sx==='m')G.sons=(G.sons||0)+1;addLog(G.age,josaFix(nm+'이(가)')+' '+ag+'살에 '+(A.s==='m'&&!A.found?'양자로':'우리 식구로')+' 들어왔다.',{tone:'good'})}if(res.hon){const k=honKid(G);if(k){if(res.hon==='wait')k.hw=G.age;else{k.hon=res.hon;k.hy=G.age}}}if(res.flag==='fallen'&&res.cls)G.job2=res.cls==='nobi'?(G.sex==='m'?'mfarm':'kitchen'):(G.sex==='m'?'farm':'weave');if(res.cls){G.cls=res.cls;setWorld(G.cls);buildLabels()}
   ok?sfx.ok():sfx.no();
   await say([{text:(ch.chk?(ok?'【성공!】 ':'【실패…】 '):'')+res.r,gain:fmtGain(d)}],id);if(id!==runId)return;
   addLog(G.age,(ev.h?'['+(G.year+G.age)+'년] ':'')+ev.t+' — '+ch.t+'. '+res.r,{note:nt,tone:ch.chk?(ok?'good':'bad'):''});
@@ -3646,7 +3658,7 @@ function eduKid(g){return (g.kl||[]).find(k=>k.d==null&&!k.ed&&g.age-k.b>=7&&g.a
 const HONT={match:{m:'중매로 형편이 비슷한 집안의 규수와 혼례를 올렸다.',f:'중매로 맺은 집안으로 시집을 갔다.'},rich:{m:'넉넉한 집안의 규수와 혼례를 올렸다.',f:'넉넉한 집안으로 시집을 갔다.'},noble:{m:'이름난 가문의 규수와 혼례를 올려 집안의 격이 높아졌다.',f:'이름난 가문으로 시집을 갔다.'},love:{m:'마음에 두었던 이웃 처녀와 혼례를 올렸다.',f:'마음에 두었던 이웃 총각에게 시집을 갔다.'},nobi:{m:'주인댁의 허락을 받아 같은 처지의 짝과 혼인했다.',f:'주인댁의 허락을 받아 같은 처지의 짝과 혼인했다.'}};
 function kidGrow(k){const son=k.s==='m',nm=josaFix(k.n+'이(가)'),c=G.cls,hi=c==='yang'||c==='gwi',first=son&&(G.kl||[]).filter(x=>x.s==='m'&&x.d==null).indexOf(k)===0;let t,fx={};const r=Math.random();
   if(son){const ed=k.ed||'work';
-    if(ed==='study'||ed==='master'||ed==='home'){const p=(ed==='master'?.45:ed==='study'?.3:.18)*(hi?1:c==='jung'?.5:c==='pyung'?.3:.08);
+    if(ed==='study'||ed==='master'||ed==='home'){const p=((ed==='master'?.45:ed==='study'?.3:.18)+(k.dol==='lr'?.05:0))*(hi?1:c==='jung'?.5:c==='pyung'?.3:.08);
       if(r<p){t='아들 '+nm+' 과거에 급제했다! 어려서부터 '+(ed==='master'?'이름난 스승께 배운':ed==='study'?'서당에서 갈고닦은':'집에서 익힌')+' 글공부가 빛을 보았다.';fx={hn:10,bd:3}}
       else if(r<p+.35){t='아들 '+nm+' 글을 잘해 마을 아이들을 가르치는 훈장이 되었다.';fx={hn:4,lr:1}}
       else{t='아들 '+nm+' 과거에는 붙지 못했지만, 글을 아는 덕에 고을에서 믿음직한 일꾼이 되었다.';fx={hn:2,wl:2}}}
@@ -3656,6 +3668,7 @@ function kidGrow(k){const son=k.s==='m',nm=josaFix(k.n+'이(가)'),c=G.cls,hi=c=
   else{const ed=k.ed||'craft';
     const hs=HONT[k.hon||'match'].f;t=ed==='eon'?'딸 '+nm+' '+hs+' 한글 편지를 곱게 쓰고 책을 읽을 줄 알아 시댁에서 칭찬이 자자하다고 한다.':ed==='study'?'딸 '+nm+' '+hs+' 어려서 익힌 글공부 덕에 시댁 살림 장부를 도맡았다고 한다.':'딸 '+nm+' '+hs+' 야무진 길쌈과 바느질 솜씨로 시댁 살림을 일으켰다고 한다.';
     fx=ed==='craft'?{wl:2,bd:2}:{hn:2,bd:2};t+=' 집이 한결 허전하다.'}
+  const DOLN={lr:'붓',wl:'엽전',hn:'활',hp:'실',rice:'쌀'};if(k.dol&&DOLN[k.dol])t+=' 돌잡이 때 '+jb(DOLN[k.dol],'을','를')+' 잡았던 아이가 어느새 이렇게 자랐다.';
   applyFx(fx);famLog(G.age,t,{tone:'good',note:son?'조선에서는 보통 맏아들이 부모를 모시고 집안을 이었고, 다른 아들은 혼인하면 살림을 따로 냈어요(분가).':'조선의 딸은 혼인하면 시댁으로 가서 살았어요. 조선 전기에는 신랑이 신부 집에서 한동안 사는 풍습도 있었어요.'})}
 function famYear(){if(!G.kin)ensureFam();if(G.year+G.age===1896&&P13[G.place]&&!G.p96){G.p96=1;famLog(G.age,'사는 고을의 이름이 바뀌었다. '+G.place+' → '+P13[G.place]+' (13도제)',{note:'1896년 8도를 13도로 바꾸면서 전라·충청·경상·평안·함경도가 남도와 북도로 나뉘었어요.'})}if(G.rf&&G.year+G.age>=RF().d)return;const F=G.kin,a=G.age,pa=G.pa||[30,28];
   ['아버지','어머니'].forEach((n,i)=>{if(a===F.pd[i]){applyFx({bd:-3,hp:-1});if(G.cls==='wang'&&!G.flags.has('inlaw')){const rf=RF();famLog(a,i===0?(rf&&rf.fdt?rf.fdt:'임금이신 아바마마('+(rf?rf.dad:reignOf(G.year).split(' ')[0])+')께서 승하하셨다. 온 나라가 국상을 치렀다.'):rf&&rf.mdt?rf.mdt:rf?'어마마마('+rf.mo+')께서 세상을 떠나셨다. 궁궐에 곡소리가 울렸다.':'어마마마께서 '+(pa[1]+a)+'세에 '+cz(famCause(pa[1]+a,G.year+a,'f'))+' 세상을 떠나셨다. 궁궐에 곡소리가 울렸다.',{tone:'bad',note:'임금이나 왕비가 세상을 떠나면 나라 전체가 상을 치르는 국상을 지냈어요. 그동안 혼례나 잔치, 음악이 금지되었어요.'});return}famLog(a,(G.flags.has('inlaw')?'친정 ':'')+n+'께서 '+(pa[i]+a)+'세에 '+cz(famCause(pa[i]+a,G.year+a,i?'f':'m'))+' 세상을 떠나셨다. '+(ERA(G)==='전기'?'형제자매가 함께 상을 치르고 제사도 돌아가며 맡기로 했다.':'맏아들이 상주가 되어 삼년상을 치렀다.'),{tone:'bad',note:'부모가 돌아가시면 삼년상(실제로는 약 27개월)을 치렀어요. 양반 가운데에는 무덤 곁에 움막을 짓고 지키는 시묘살이를 한 사람도 있었어요.'})}});
