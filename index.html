@@ -165,8 +165,12 @@ footer{text-align:center;color:var(--sub);font-size:13px;margin-top:20px}
 #sidetabs button{flex:1;padding:7px 4px;font:inherit;font-size:14px;font-weight:700;border:2px solid #3b2a17;border-radius:6px;background:#f6ecd6;color:#3b2a17;cursor:pointer}
 #sidetabs button.on{background:#3b2a17;color:#f6ecd6}
 .layout.playing:not(.ended) .side>.card{display:none!important}
-.layout.playing:not(.ended) .side[data-tab=feed]>#feedcard:not([hidden]){display:flex!important;flex:1 1 auto;min-height:0}
-.layout.playing:not(.ended) .side[data-tab=feed] .feed{max-height:none!important;flex:1 1 auto;min-height:0;overflow-y:auto}
+.layout.playing:not(.ended) .side[data-tab=feed]>#feedcard:not([hidden]){display:flex!important;flex:1 1 0!important;min-height:0!important;overflow:hidden}
+.layout.playing:not(.ended) .side[data-tab=feed] #feed{min-height:0!important;flex:1 1 0!important}
+.layout.playing:not(.ended) #feedcard .fh h2{font-size:18px}.layout.playing:not(.ended) #feedcard{padding:10px 12px}
+@media (min-width:861px) and (max-height:820px){.layout.playing:not(.ended) #feedcard .fh small,.layout.playing:not(.ended) #fbon{display:none!important}.layout.playing:not(.ended) #feedcard .ff{margin-top:4px}}
+.layout.playing:not(.ended) .side[data-tab=feed] .feed{max-height:none!important;flex:1 1 auto;min-height:0;overflow-y:auto;padding-bottom:22px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent)}
+.side .feed{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 30px),transparent);padding-bottom:18px}
 .layout.playing:not(.ended) .side[data-tab=map]>.mapcard{display:block!important;flex:1 1 auto;min-height:0;overflow-y:auto}
 .layout.playing:not(.ended) .side[data-tab=fam]>#famcard,.layout.playing:not(.ended) .side[data-tab=fam]>#peercard{display:block!important;flex:none}
 .layout.playing:not(.ended) .side[data-tab=fam]{overflow-y:auto!important}
@@ -3051,6 +3055,7 @@ function fmtGain(d){const a=Object.keys(d).filter(k=>d[k]!==0).map(k=>SL[k]+' '+
 
 /* ============ 대화창 · 선택창 (쯔꾸르식) ============ */
 function norm(p){return typeof p==='string'?{who:'',text:p}:Array.isArray(p)?{who:p[0],text:p[1]}:p}
+function readMs(t){return Math.round(Math.min(7000,Math.max(2200,1400+String(t||'').length*55))*(G&&G.speed>=8?.75:1))}
 async function say(pages,id){ensureConsole();$('#choicebox').innerHTML='';
   for(const raw of pages){if(id!==runId)return;const p=norm(raw);await typePage(p.who||'',fillN(p.text),p.gain)}}
 function typePage(who,text,gain){return new Promise(res=>{
@@ -3058,11 +3063,11 @@ function typePage(who,text,gain){return new Promise(res=>{
   GL_CTX=text;showGloss([text]);const el=$('#msgbox .msg'),tx=el.querySelector('.text'),nx=el.querySelector('.next');let i=0,done=false,timer=null,auto=null;
   const cleanup=()=>{clearInterval(timer);clearTimeout(auto);el.removeEventListener('click',adv);document.removeEventListener('keydown',key)};
   const fin=()=>{if(done)return;done=true;clearInterval(timer);tx.textContent=text;if(gain){const g=document.createElement('span');g.className='gain';g.textContent=gain;tx.appendChild(g)}nx.hidden=false;
-    if(G&&G.autoD)auto=setTimeout(()=>{cleanup();curCleanup=null;res()},1100)};
+    if(G&&G.autoD)auto=setTimeout(()=>{cleanup();curCleanup=null;res()},readMs(text))};
   function adv(){if(!done){fin();return}cleanup();curCleanup=null;res()}
   function key(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();adv()}}
   curCleanup=cleanup;el.addEventListener('click',adv);document.addEventListener('keydown',key);
-  timer=setInterval(()=>{i++;tx.textContent=text.slice(0,i);if(i%3===0)sfx.type();if(i>=text.length)fin()},G&&G.autoD?6:24)})}
+  timer=setInterval(()=>{i++;tx.textContent=text.slice(0,i);if(i%3===0)sfx.type();if(i>=text.length)fin()},G&&G.autoD?14:24)})}
 function ask(items,intro,title,kind){const autoI=()=>{const ok=items.map((o,i)=>o.dis?-1:i).filter(i=>i>=0),f=ok.filter(i=>items[i].up);return f.length&&Math.random()<.7?R(f):R(ok)};return new Promise(res=>{const cb=$('#choicebox');cb.classList.remove('min');
   cb.innerHTML='<div class="rpg choices" role="listbox">'+(G?'<div class="dhead"><span>'+(kind||'중대 결정')+'</span><span class="dy">'+G.age+'세 · '+(G.year+G.age)+'년</span><button type="button" class="dmin">잠깐 내려 두기</button></div>'+(title?'<h3 class="dt">'+esc(title)+'</h3>':''):'')+(GL_CTX?'<p class="dq">'+esc(GL_CTX)+'</p>':'')+(intro?'<div class="crit">'+esc(intro)+'</div>':'')+items.map((o,i)=>'<button class="choice" data-i="'+i+'" '+(o.dis?'disabled':'')+'>'+(i+1)+'. '+esc(o.t)+(o.tag?'<span class="tag">'+o.tag+'</span>':'')+(o.need?'<span class="need">'+esc(o.need)+'</span>':'')+'</button>').join('')+(G&&!G.autoD?'<button class="autobtn" type="button">이제부터 결정을 자동으로 맡기기</button>':'')+'</div>';
   showGloss([GL_CTX].concat(items.map(o=>o.t)));const btns=[...cb.querySelectorAll('.choice')];let sel=items.findIndex(o=>!o.dis);if(btns[sel])btns[sel].classList.add('sel');let at=null;
@@ -3073,7 +3078,7 @@ function ask(items,intro,title,kind){const autoI=()=>{const ok=items.map((o,i)=>
     if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();let j=sel;do{j=(j+(e.key==='ArrowDown'?1:-1)+items.length)%items.length}while(items[j].dis);btns.forEach(b=>b.classList.remove('sel'));sel=j;btns[j].classList.add('sel');btns[j].focus()}
     else if(e.key==='Enter'&&sel>=0&&document.activeElement.tagName!=='BUTTON'){pick(sel)}}
   curCleanup=cleanup;cb.addEventListener('click',onc);document.addEventListener('keydown',key);
-  if(G&&G.autoD){at=setTimeout(()=>pick(autoI()),1100)}})}
+  if(G&&G.autoD){at=setTimeout(()=>pick(autoI()),Math.round(3000*(G.speed>=8?.75:1)))}})}
 
 /* ============ 연 단위 진행 ============ */
 const NOTES={honghwamun:'1750년 영조는 창경궁 홍화문에 나가 양반과 평민의 의견을 직접 들었어요(순문). 〈영조실록〉 26년 기록에 군역 문제로 고통받는 백성을 안타까워한 모습이 남아 있어요. 그 결과 균역법이 만들어졌어요.',sangpyeong:'상평통보(1678, 숙종 4년)는 영의정 허적의 건의로 만든 동전이에요. 엽전이라고도 부르며 조선 말까지 쓰였어요. 처음에는 백성들이 믿지 못해 쓰기를 꺼렸어요.',jongmo:'노비종모법(1731, 영조 7년)은 어머니가 노비일 때만 자식도 노비가 되게 한 법이에요. 이후 노비 수가 크게 줄어들었어요.',mandeok:'김만덕(1739~1812)은 제주의 큰 흉년(1790년대)에 전 재산으로 육지의 쌀을 사 굶주린 사람들을 구했어요. 〈정조실록〉에 그 이야기가 실려 있고, 정조는 소원이던 금강산 유람을 허락했어요.',sami:'1795년(정조 19) 정조는 어머니 혜경궁 홍씨의 회갑을 기념해 홍화문 밖에서 가난한 백성들에게 쌀을 나누어 주었어요.',byeongja:'병자호란(1636~1637)은 청나라가 쳐들어온 전쟁이에요. 인조는 1636년 12월 남한산성에 들어가 한 달 반 넘게 버텼지만, 1637년 1월 30일(음력) 삼전도에서 항복했어요. 〈인조실록〉에는 전쟁이 끝난 뒤 한양 길거리에 시체가 널려 있었다는 기록이 있어요.',daedong:'대동법은 공물 대신 쌀로 세금을 내게 한 제도예요. 경기도에서 시작해 약 100년에 걸쳐 전국으로 퍼졌어요.',gyeongsin:'경신대기근(1670~1671, 현종 11~12년)은 서리·우박과 전염병이 겹쳐 최소 100만 명이 숨진 것으로 추정되는 큰 기근이에요. 〈현종실록〉에는 진휼소에 모여든 굶주린 백성 사이에서 사망자가 속출했다는 기록이 있어요.',eulbyeong:'을병대기근(1695~1696, 숙종 21~22년)은 경신대기근에 이어 다시 닥친 큰 기근이에요.',gyunyeokbeop:'균역법(1750~1751, 영조 26~27년)은 군포를 2필에서 1필로 줄여 백성의 부담을 덜어 준 제도예요. 모자란 세금은 토지세(결작)와 어장·염전·선박세 등으로 채웠어요.',sinhae:'신해통공(1791)은 시전 상인의 독점(금난전권)을 풀어 누구나 장사할 수 있게 한 정책이에요. 육의전은 예외였어요.',hwaseong:'수원 화성(1794~1796)은 정조가 쌓은 성이에요. 정약용이 설계한 거중기를 쓰고, 일꾼에게 품삯을 주었어요.',gyeokjaeng:'격쟁은 임금이 행차할 때 징이나 꽹과리를 쳐서 억울함을 직접 알리던 제도예요. 정조 때 특히 활발했어요.',gongnobi:'1801년(순조 1) 중앙 관청에 매인 공노비 약 6만 6천 명을 풀어 주었어요. 개인 집의 사노비는 포함되지 않았어요.',hongnan:'홍경래의 난(1811~1812)은 서북 지역 차별과 세도 정권의 수탈에 맞서 평안도에서 일어난 봉기예요. 가산·정주 등 청천강 이북 10여 개 고을을 차지했지만 약 5개월 만에 진압되었어요.',imsul:'임술 농민 봉기(1862, 철종 13년)는 2월 진주에서 시작되어 삼남 일대로 퍼졌어요. 경상우병사 백낙신의 수탈에 분노한 농민(초군)들이 흰 수건을 두르고 진주성으로 몰려가, 잘못된 환곡·세금을 없앤다는 약속을 받아 냈어요. 조정은 삼정이정청을 두어 개혁을 시도했어요.',gyeongbok:'경복궁 중건(1865~1868) 비용을 마련하려고 원납전을 걷고 당백전을 발행하자 물가가 크게 올랐어요.',byeongin:'병인양요(1866)는 프랑스군이 강화도를 공격한 사건이에요. 프랑스군이 가져간 외규장각 의궤는 2011년에 5년마다 갱신하는 대여 방식으로 돌아왔어요.',gabo:'1894년 갑오개혁으로 양반·상민·노비 같은 신분 제도가 법적으로 없어졌어요. 하지만 차별이 사라지기까지는 오랜 시간이 걸렸어요.',danbal:'단발령(1895)은 상투를 자르게 한 명령이에요. 많은 사람이 반발했고, 을미의병이 일어난 계기 중 하나가 되었어요.',chun:'서당에서는 천자문을 시작으로 동몽선습, 명심보감 등을 배웠어요.',dam:'노비는 글을 배울 기회가 거의 없었지만, 어깨너머로 글을 익힌 사람도 있었어요.',
@@ -3178,7 +3183,7 @@ function deathMsg(kind){const y=G.year+G.age,a=G.age,f=G.sex==='f',poor=G.s.wl<1
     if(sea)add('갯벌에서 놀다 밀물에 갇혀 돌아오지 못했다.');
     if(mtn&&y<1850)add('마을 뒷산에서 나무를 하다 범을 만나 화를 당했다.');
     if(poor)add('흉년에 먹을 것이 모자라 몸이 약해진 끝에 세상을 떠났다.','풀뿌리와 나무껍질로 끼니를 잇다 병을 얻었다.')}
-  else if(kind==='ill'){add('돌림병(역병)이 마을을 휩쓴 해에 세상을 떠났다.','염병(장티푸스)을 앓다가 끝내 일어나지 못했다.','학질(말라리아)이 낫지 않아 끝내 세상을 떠났다.','기침이 멎지 않는 폐병(노점)으로 몸이 말라 가다 세상을 떠났다.','등에 난 큰 종기가 덧나 세상을 떠났다.','배 속에 생긴 큰 덩어리(적병)로 고생하다 세상을 떠났다.','상처가 곪아 파상풍이 되어 세상을 떠났다.','한여름 더위를 먹고 쓰러진 뒤 일어나지 못했다.','엄동설한에 고뿔이 폐렴으로 번져 세상을 떠났다.','이가 옮기는 열병(발진티푸스)에 걸려 세상을 떠났다.');
+  else if(kind==='ill'){add('돌림병(역병)이 마을을 휩쓴 해에 세상을 떠났다.','장티푸스(장질부사)를 앓다가 끝내 일어나지 못했다.','학질(말라리아)이 낫지 않아 끝내 세상을 떠났다.','기침이 멎지 않는 폐병(노점)으로 몸이 말라 가다 세상을 떠났다.','등에 난 큰 종기가 덧나 세상을 떠났다.','배 속에 생긴 큰 덩어리(적병)로 고생하다 세상을 떠났다.','상처가 곪아 파상풍이 되어 세상을 떠났다.','한여름 더위를 먹고 쓰러진 뒤 일어나지 못했다.','엄동설한에 고뿔이 폐렴으로 번져 세상을 떠났다.','이가 옮기는 열병(발진티푸스)에 걸려 세상을 떠났다.');
     if(y>=1821)add2('서쪽에서 들어온 괴질(콜레라)에 걸려 하루 만에 세상을 떠났다.');
     if(f&&G.lastBirth!=null&&a-G.lastBirth<=1)add2('아이를 낳은 뒤 산후병을 앓다 세상을 떠났다.','아이를 낳다가 피를 많이 흘려 세상을 떠났다.');
     if(poor)add('보릿고개를 넘기지 못하고 굶주림 끝에 병을 얻었다.','먹을 것이 없어 소나무 껍질을 먹다 병을 얻었다.');
@@ -3418,7 +3423,7 @@ function fixRoyalPd(){if(G.cls!=='wang'||!G.kin||G.kin.rp)return;G.kin.rp=1;cons
 function crisisOf(y,pl){pl=pl||(G&&G.place)||'';if(y===1821||y===1822)return '괴질(콜레라)';if((y>=1670&&y<=1671)||(y>=1695&&y<=1696)||(y>=1876&&y<=1877))return '굶주림';if(y>=1636&&y<=1637&&/평안도|황해도|경기도|한양/.test(pl))return '전란';if(y===1894&&/전라도|충청도/.test(pl))return '전란';return ''}
 function famCause(age,y,sex){const c=crisisOf(y);if(c&&Math.random()<.5)return c;let L;
   if(age<1)L=['태독','경풍','젖을 먹지 못하는 병'];else if(age<5)L=['마마','홍역','이질','경풍','백일해'];else if(age<15)L=['마마','홍역','이질','학질','성홍열','돌림병','열병'];
-  else if(age<60){L=['돌림병','염병','학질','열병','폐병','종기','곽란','황달','상한'];if(sex==='f'&&age<=45)L.push('산후병','산후병');if(y>=1821)L.push('괴질(콜레라)')}
+  else if(age<60){L=['돌림병','장티푸스','학질','열병','폐병','종기','곽란','황달','상한'];if(sex==='f'&&age<=45)L.push('산후병','산후병');if(y>=1821)L.push('괴질(콜레라)')}
   else L=['노환','노환','중풍','해수 천식','반위','고뿔','수종'];
   return R(L)}
 const cz=c=>josaFix(c+'으로(로)');
