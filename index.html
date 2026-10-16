@@ -2645,7 +2645,7 @@ const ENDS={
  rich:{n:'삼남 제일의 거부',e:'장사 수완으로 곳간을 채웠다. 흉년에도 쌀이 마르지 않는 집으로 이름났다.'},
  hero:{n:'고을이 기리는 의인',e:'어려운 때마다 앞장서 이웃을 도왔다. 마을 어귀에는 그를 기리는 비석이 섰다.'},
  beloved:{n:'온 마을이 아끼는 어르신',e:'곁에 사람이 늘 모여들었다. 정자나무 아래에는 그의 이야기를 듣는 이들이 가득하다.'},
- longlife:{n:'백수를 누린 장수 노인',e:'튼튼한 몸으로 손주의 손주까지 보았다. 건강이 가장 큰 재산이라는 말이 딱 맞는 삶이었다.'},
+ longlife:{n:'천수를 누린 장수 노인',e:'일흔이 넘도록 살아 손주들의 재롱까지 보았다. 사람 수명이 짧던 시절, 고을에서 손꼽히는 장수 노인이었다.'},
  plain:{n:'평범하지만 따뜻한 일생',e:'크게 이름을 남기진 않았지만, 하루하루 성실히 살아낸 삶이었다. 이웃들의 마음에 잔잔한 온기가 남았다.'},
  early:{n:'일찍 저문 별',e:'안타깝게도 몸이 버티지 못했다. 짧았지만 선택으로 가득했던 삶이었다.'}
 };
@@ -3168,7 +3168,7 @@ function portrait(cv,cls,sex){const c=cv.getContext('2d');c.clearRect(0,0,cv.wid
   rect(c,'rgba(255,255,255,.0)',0,0,1,1);drawPerson(c,Math.floor(cv.width/2),cv.height-2,personStyle(cls,sex),0)}
 
 /* ============ 출생 ============ */
-const MAXAGE=78;
+const MAXAGE=70;
 const REIGNS=[[1567,'선조'],[1608,'광해군'],[1623,'인조'],[1649,'효종'],[1659,'현종'],[1674,'숙종'],[1720,'경종'],[1724,'영조'],[1776,'정조'],[1800,'순조'],[1834,'헌종'],[1849,'철종'],[1863,'고종'],[1907,'순종']];
 function reignOf(y){if(y>1910)return '일제 강점기 '+(y-1910)+'년째';let r=REIGNS[0];for(const x of REIGNS)if(y>=x[0])r=x;return r[1]+' '+(y-r[0]+1)+'년'}
 const R=a=>a[Math.floor(Math.random()*a.length)];
@@ -3508,8 +3508,8 @@ function checkDeath(){const a=G.age,cm=CLM[G.cls]||1;
   {const y=G.year+a,pl=G.place||'';let w=0;if(y>=1636&&y<=1637)w=/평안도|황해도|경기도|한양/.test(pl)?.03:.008;else if(y===1627)w=/평안도|황해도/.test(pl)?.02:0;else if(y===1894)w=/전라도|충청도/.test(pl)?.02:.003;else if(y>=1907&&y<=1909)w=.006;
    if(a>=12&&a<=65&&w&&Math.random()<w)return 'war';
    const fam=(y>=1670&&y<=1671)||(y>=1695&&y<=1696)||(y>=1876&&y<=1877);if(fam&&Math.random()<(G.s.wl<25?.04:G.s.wl<60?.01:.002))return 'famine'}
-  if(a>=15&&a<55&&Math.random()<clamp(.002+(50-G.s.hp)/2500,.001,.03)*cm)return 'ill';
-  if(a>=55&&Math.random()<clamp(((70-G.s.hp)/700+(a-55)*.004)*cm+(a>=85?(a-85)*.02:0),0,.6))return 'natural';return null}
+  if(a>=15&&a<50&&Math.random()<clamp(.006+Math.max(0,60-G.s.hp)/1500,.004,.04)*cm)return 'ill';
+  if(a>=50&&Math.random()<clamp(((70-G.s.hp)/600+(a-50)*.005)*cm+(a>=80?(a-80)*.02:0),0,.7))return 'natural';return null}
 const WANG_OK=new Set(['kidplan','chulgung','jaehon','hwangap','okssa','ilsang','byeong','jesa','son','mama','haesan_f','haesan_m','doljan','agi']);
 const GWI_NO=new Set(['heun','nong','dam','gunyeok','jubin','mulgeo','uinyeo']);
 const MEV=new Map();function marryEv(e){if(!MEV.has(e.id)){let t='';try{t=typeof e.c==='function'?e.c.toString():JSON.stringify(e.c)}catch(x){}MEV.set(e.id,/married|"kid"|kid:|widowed|haesan/.test(t+e.id))}return MEV.get(e.id)}
@@ -3592,10 +3592,10 @@ async function lifeLoop(id){
     G.hap[G.age]=calcHap();updateStatus(d);saveGame()}}
 
 /* ============ 엔딩 ============ */
-const ENDHINT={hist:'정약용·김만덕 같은 실제 역사 인물로 태어나 한평생 살기',mugwan:'양반이 아닌 집에서 태어나 무과에 급제하기',abroad:'간도·연해주·하와이로 건너가 오래 살기',fallen:'가난이나 역모에 휘말려 신분이 낮아진 채 삶을 마치기',joseonend:'1910년까지 살아 조선의 마지막을 지켜보기',cheonfree:'백정·광대·무당으로 태어나 천민의 굴레를 벗기',napsok:'평민이나 중인으로 태어나 공명첩이나 족보로 양반이 되기',roy:'왕실에서 태어나 실록 속 인물로 한평생 살기',sage:'관직에서 청렴하게 일하고 명예 80 이상',corrupt:'관직에서 뇌물을 받고 재물 60 이상',freed:'노비로 태어나 면천에 성공',scholar:'학문 80 이상',rich:'재물 90 이상',hero:'명예 70 이상',beloved:'인연 90 이상',longlife:'건강 60 이상으로 78세까지 살기',plain:'특별한 업적 없이 성실하게',early:'일찍 세상을 떠나기',pillar:'명문가에서 태어나 명예 75·재물 60 이상',royal:'실록에 이름이 없는 왕족으로 태어나 명예 70 이상으로 60세까지 살기',exile:'왕족으로 태어나 권력 다툼에서 모함당하기',executed:'난에 가담했다 붙잡혀 처형당하기',sayak:'왕족·명문가로서 역모에 연루되어 사약 받기',exile2:'역모에 연루되었다가 유배형을 받기'};
+const ENDHINT={hist:'정약용·김만덕 같은 실제 역사 인물로 태어나 한평생 살기',mugwan:'양반이 아닌 집에서 태어나 무과에 급제하기',abroad:'간도·연해주·하와이로 건너가 오래 살기',fallen:'가난이나 역모에 휘말려 신분이 낮아진 채 삶을 마치기',joseonend:'1910년까지 살아 조선의 마지막을 지켜보기',cheonfree:'백정·광대·무당으로 태어나 천민의 굴레를 벗기',napsok:'평민이나 중인으로 태어나 공명첩이나 족보로 양반이 되기',roy:'왕실에서 태어나 실록 속 인물로 한평생 살기',sage:'관직에서 청렴하게 일하고 명예 80 이상',corrupt:'관직에서 뇌물을 받고 재물 60 이상',freed:'노비로 태어나 면천에 성공',scholar:'학문 80 이상',rich:'재물 90 이상',hero:'명예 70 이상',beloved:'인연 90 이상',longlife:'건강을 지키며 70세 넘게 살기',plain:'특별한 업적 없이 성실하게',early:'일찍 세상을 떠나기',pillar:'명문가에서 태어나 명예 75·재물 60 이상',royal:'실록에 이름이 없는 왕족으로 태어나 명예 70 이상으로 60세까지 살기',exile:'왕족으로 태어나 권력 다툼에서 모함당하기',executed:'난에 가담했다 붙잡혀 처형당하기',sayak:'왕족·명문가로서 역모에 연루되어 사약 받기',exile2:'역모에 연루되었다가 유배형을 받기'};
 function pickEnding(kind){const f=G.flags,s=G.s;if(kind==='joseonend')return 'joseonend';if(G.rf)return 'roy';if(G.hf)return 'hist';
   if(kind==='treason')return (G.cls==='wang'||G.cls==='gwi')?'sayak':'executed';
-  if(kind==='infant'||kind==='child'||G.age<45)return 'early';
+  if(kind==='infant'||kind==='child'||G.age<40)return 'early';
   if(f.has('exiled'))return G.cls==='wang'?'exile':'exile2';
   if(G.cls==='wang'&&s.hn>=70&&G.age>=60)return 'royal'
   if(f.has('official')&&s.hn>=80&&!f.has('corrupt'))return 'sage';
@@ -3610,7 +3610,7 @@ function pickEnding(kind){const f=G.flags,s=G.s;if(kind==='joseonend')return 'jo
   if(s.lr>=80)return 'scholar';
   if(s.wl>=90||(f.has('merchant')&&s.wl>=75))return 'rich';
   if(s.hn>=70)return 'hero';
-  if(s.hp>=60&&G.age>=MAXAGE)return 'longlife';
+  if(s.hp>=35&&G.age>=MAXAGE)return 'longlife';
   if(s.bd>=90)return 'beloved';
   return 'plain'}
 async function endLife(id,kind){
