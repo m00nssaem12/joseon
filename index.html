@@ -644,7 +644,7 @@ const EV=[
 {id:'yeon',loc:'field',a:[7,16],w:1.5,t:'정월 대보름',
  p:['정월 대보름, 들판에는 연과 불놀이 소리가 가득하다.'],
  c:[{t:'연싸움에 나선다',chk:{s:'hp',n:45,ok:{fx:{bd:8,hn:3},r:'내 연이 끝까지 남았다! 아이들이 환호한다.'},ng:{fx:{bd:3,hp:-2},r:'줄이 끊겨 연이 훨훨 날아갔다. 그래도 즐거웠다.'}}},
-    {t:'나물을 뜯고 약초를 캔다',fx:{wl:4,lr:2,hp:2},r:'바구니가 가득 찼다. 어머니가 활짝 웃으셨다.'},
+    {t:'오곡밥과 묵은 나물을 먹고 부럼을 깬다',fx:{hp:3,bd:3},r:'호두를 깨물며 한 해 부스럼이 나지 않기를 빌었다. "내 더위 사 가라!" 동무들과 더위팔기도 했다.'},
     {t:'달집태우기를 보며 소원을 빈다',fx:{bd:5,hp:1},r:'활활 타오르는 불꽃 속에 소원을 실어 보냈다.'}]},
 {id:'mama',loc:'home',a:[7,16],w:1.2,t:'마을에 도는 마마',
  p:['마을에 마마(천연두)가 돈다. 이웃 아이가 앓아누웠다는 소문이다.','우리 집에도 열이 오르는 이가 있는 듯하다.'],
@@ -677,13 +677,20 @@ const EV=[
  c:[{t:'비단을 떼어다 되판다',chk:{p:.5,ok:{fx:{wl:20},r:'비단이 순식간에 팔렸다. 엽전이 짤랑짤랑!'},ng:{fx:{wl:-12},r:'비단 값이 폭락해 손해를 봤다.'}}},
     {t:'약재 장사에 나선다',chk:{s:'lr',n:40,ok:{fx:{wl:14,lr:1},r:'약재 이름을 알아본 덕에 제값을 받았다.'},ng:{fx:{wl:-5},r:'가짜 약재를 비싸게 사 버렸다.'}}},
     {t:'국밥 한 그릇에 구경만 한다',fx:{hp:3,bd:3,wl:-2},r:'뜨끈한 국밥에 속이 든든하다. 장터 사람들과 수다도 떨었다.'}]},
+{id:'maeum',loc:'market',a:[13,24],w:5,once:true,req:g=>!g.flags.has('married')&&!g.flags.has('betrothed')&&!g.flags.has('gungnyeo')&&!g.rf&&!(g.hf&&HF()&&HF().ev.some(x=>x[2]&&x[2].married)),t:'마음에 둔 사람',
+ note:'조선 시대에는 남녀가 자유롭게 만나기 어려웠어요. 그래도 단오의 그네뛰기, 빨래터와 우물가, 장날처럼 사람들이 모이는 때에 서로 눈길을 주고받기도 했어요. 혼인은 대개 집안 어른이 정했지만, 마음에 둔 사람을 어른께 조심스레 말씀드리는 일도 있었어요.',
+ p:g=>{const sc=g.sex==='m'?R(['단옷날, 그네를 뛰는 이웃 마을 처녀의 댕기가 바람에 날렸다. 눈을 뗄 수가 없었다.','우물가에서 물동이를 이고 가던 처녀가 미끄러질 뻔해 얼른 붙잡아 주었다.','장날 비단 가게 앞에서 마주친 처녀가 수줍게 웃고 지나갔다.']):R(['단옷날 그네를 뛰다 고개를 돌리니, 씨름판의 한 총각과 눈이 마주쳤다.','빨래터에 물을 길으러 온 이웃 총각이 무거운 빨래 함지를 들어 주었다.','장날 엿장수 앞에서 마주친 총각이 엿가락 하나를 건네고 달아났다.']);return [sc,'그날 이후 자꾸만 그 얼굴이 떠오른다.']},
+ c:g=>{const nm=R(g.sex==='m'?['순이','옥분','점례','분이','막례','귀덕']:['돌쇠','만복','칠성','갑동','덕보','순돌']);return [
+   {t:'다음 장날, 용기를 내어 인사를 건넨다',chk:{s:'bd',n:35,ok:{fx:{bd:6,hp:1},flag:'crush',crush:nm,r:'"나는 '+jb(nm,'이라오','라오')+'." 이름을 알게 되었다. 가슴이 두근거린다.'},ng:{fx:{bd:-1},r:'막상 마주치자 얼굴만 빨개져 아무 말도 못 했다.'}}},
+   {t:'몰래 작은 선물을 남겨 둔다',fx:{wl:-1,bd:4},flag:'crush',crush:nm,r:'사립문 앞에 꽃 한 송이를 두고 왔다. 다음 날 그 자리에 고운 수건이 놓여 있었다. 이름은 '+jb(nm,'이라고','라고')+' 한다.'},
+   {t:'부질없는 마음이라며 접는다',fx:{lr:2},r:'"혼사는 어른들이 정하시는 법이지." 마음을 다잡았다.'}]}},
 {id:'hon',loc:'home',a:[13,30],who:['yang','jung','pyung'],w:4.5,req:g=>!g.flags.has('married')&&!g.flags.has('betrothed'),t:'중매쟁이의 방문',
  note:'옛 혼인은 부모가 정하는 경우가 많았고, 10대 초중반에 일찍 혼인하는 조혼도 흔했어요. 중매쟁이가 두 집을 오가며 사주단자를 주고받고, 궁합을 본 뒤 혼례 날을 받았어요.',
  p:['중매쟁이 할멈이 사립문을 두드린다.',['중매쟁이','"좋은 혼처가 났다우. 양가 사주를 놓고 궁합이나 한번 보시구려!"']],
- c:[{t:'집안 좋은 혼처를 택한다',fx:{bd:4,hn:6,wl:8},flag:'betrothed',r:'사주단자를 주고받고 혼례 날을 받았다. 양가가 문벌을 따져 맺은 혼사다.'},
+ c:g=>[{t:'집안 좋은 혼처를 택한다',fx:{bd:4,hn:6,wl:8},flag:'betrothed',r:'사주단자를 주고받고 혼례 날을 받았다. 양가가 문벌을 따져 맺은 혼사다.'},
     {t:'궁합을 보고 정한다',chk:{p:.8,ok:{fx:{bd:10,hn:2},flag:'betrothed',r:'"천생연분이오!" 궁합이 척척 맞는다는 풀이에 혼례 날을 받았다.'},ng:{fx:{bd:-2},r:'"두 사람이 상극이라 하오." 궁합이 좋지 않다는 말에 혼담이 흐지부지되었다.'}}},
-    {t:'마음이 가는 이와 혼인하게 해 달라 청한다',chk:{p:.7,ok:{fx:{bd:12},flag:'betrothed',r:'어른들이 못 이기는 척 허락하셨다. 수줍은 눈빛이 오가던 사이라 혼례 날을 받았다.'},ng:{fx:{bd:-4,hn:-2},r:'"혼사는 부모가 정하는 법이다!" 어른들의 호통에 뜻을 접었다.'}}},
-    {t:'아직은 이르다며 미룬다',fx:{lr:4,wl:4,hp:1},r:'일과 공부에 마음을 쏟기로 했다.'}]},
+    g.flags.has('crush')?{t:'마음에 둔 '+jb(g.crushN||'그 사람','과','와')+' 혼인하게 해 달라 청한다',chk:{p:.65,ok:{fx:{bd:12},flag:'betrothed',r:'어른들이 못 이기는 척 허락하셨다. 수줍은 눈빛이 오가던 '+jb(g.crushN||'그 사람','과','와')+' 혼례 날을 받았다.'},ng:{fx:{bd:-4,hn:-2},unflag:'crush',r:'"혼사는 부모가 정하는 법이다!" 어른들의 호통에 뜻을 접었다.'}}}:null,
+    {t:'아직은 이르다며 미룬다',fx:{lr:4,wl:4,hp:1},r:'일과 공부에 마음을 쏟기로 했다.'}].filter(Boolean)},
 {id:'nobihon',loc:'home',a:[14,35],who:['nobi'],w:4,req:g=>!g.flags.has('married'),t:'노비의 혼인',
  note:'노비도 혼인했지만 주인의 허락이 필요했어요. 부부가 서로 다른 집 노비이면 따로 사는 일도 많았어요.',
  p:['같은 집 노비와 짝을 맺어 주면 어떻겠느냐는 말이 주인댁에서 흘러나온다.'],
@@ -722,7 +729,7 @@ const EV=[
    return [{t:'중매로 형편이 비슷한 집안과 맺는다',fx:{wl:-5,bd:3},hon:'match',r:'중매쟁이가 오가며 혼처가 정해졌다. 사주단자가 오갔다.'},
      {t:'혼수를 넉넉히 마련해 형편 좋은 집안과 맺으려 한다',need:{wl:20},chk:{p:.55,ok:{fx:{wl:-20,hn:5},hon:'rich',r:'넉넉한 집안에서 혼인을 받아들였다. 이웃들이 부러워한다.'},ng:{fx:{wl:-8,hn:-2},hon:'match',r:'상대 집안이 거절했다. 결국 형편이 비슷한 집안과 혼처를 정했다.'}}},
      hi?{t:'가문의 격을 따져 이름난 가문과 혼사를 맺는다',chk:{s:'hn',n:50,ok:{fx:{hn:8,wl:-10},hon:'noble',r:'이름난 가문과 사돈을 맺게 되었다. 문중 어른들이 크게 기뻐했다.'},ng:{fx:{hn:-3},hon:'match',r:'"격이 맞지 않는다." 퇴짜를 맞았다. 결국 비슷한 집안과 혼처를 정했다.'}}}:null,
-     {t:'아이가 마음에 둔 이웃과 맺어 준다',fx:{bd:6,hn:-2},hon:'love',r:'"요즘 세상에 별일이네." 수군거림도 있었지만 아이 얼굴이 환해졌다.'},
+     k.love?{t:'아이가 마음에 둔 이웃과 맺어 준다',fx:{bd:6,hn:-2},hon:'love',r:'"요즘 세상에 별일이네." 수군거림도 있었지만 아이 얼굴이 환해졌다.'}:null,
      {t:'아직 이르다며 몇 해 더 데리고 있는다',fx:{bd:2},hon:'wait',r:'"조금만 더 곁에 두자." 아이 얼굴을 한참 바라보았다.'}].filter(Boolean)}},
 {id:'kidedu',loc:'school',a:[20,70],w:14,req:g=>!g.rf&&g.cls!=='wang'&&!!eduKid(g),t:'자식 공부',
  note:'조선의 남자아이는 일곱 살 무렵 서당에 들어가 《천자문》, 《동몽선습》 등을 배웠어요. 형편이 넉넉한 양반집은 이름난 스승을 모셔 오기도 했어요. 여자아이는 서당에 다니지 못했지만 집에서 한글이나 《소학》, 바느질과 길쌈을 배웠어요. 형편이 어려운 집 아이들은 일찍부터 일을 배워야 했어요.',
@@ -3215,6 +3222,7 @@ function rollBirth0(cls,sex,name){cls=cls||weightedClass();
 /* ============ 상태 · 화면 ============ */
 let G=null,runId=0,curBirth=null,curCleanup=null;
 const FLAGN={naegwan:'내관',hist:'실존 인물',gungnyeo:'궁녀',mugwa:'무과 급제',migrant:'이주',udu:'우두 접종',fallen:'신분 하락',seoeol:'서얼',napsok:'납속 양반',buma:'부마',inlaw:'왕실 혼인',widowed:'사별',remarried:'재혼',official:'관직',married:'혼인',betrothed:'정혼',exiled:'유배',rebel:'봉기',plotter:'역모',freed:'면천',teacher:'훈장',merchant:'객주',corrupt:'탐관',saengwon:'생원',debt:'빚'};
+const jb=(n,a,b)=>{n=String(n||'');const c=n.charCodeAt(n.length-1);return n+((c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28)?a:b)};
 function josaFix(t){
   const B=ch=>{const c=ch.charCodeAt(0);if(c>=0xAC00&&c<=0xD7A3)return (c-0xAC00)%28;return /[0-9]/.test(ch)?('2459'.indexOf(ch)<0?1:0):0};
   const M={'이(가)':['이','가'],'을(를)':['을','를'],'은(는)':['은','는'],'과(와)':['과','와'],'으로(로)':['으로','로']};
@@ -3556,12 +3564,12 @@ async function runEvent(ev,id){
     return{up:upf,t:ch.t,tag:ch.chk?'도전':'',dis:!!lack,need:[ch.need?Object.entries(ch.need).map(([k,v])=>SL[k]+' '+v).join(', ')+' 필요 (지금 '+Object.keys(ch.need).map(k=>G.s[k]).join(', ')+')'+(lack?' · 부족':''):'',chHint(ch)].filter(Boolean).join(' · ')}});
   const i=await ask(opts,nt?'📜 역사 해설 · '+nt:'',ev.t,(ev.once||ev.h||cs.some(c=>c.chk||c.need))?'중대 결정':'작은 선택');if(id!==runId)return;
   const ch=cs[i];let ok=true,res=ch;
-  if(ch.chk){const c=ch.chk;ok=c.s?(G.s[c.s]+Math.random()*30-15>=cN(c)):Math.random()<c.p;res=ok?c.ok:c.ng}
+  if(ch.chk){const c=ch.chk;ok=Math.random()<chkP(c);res=ok?c.ok:c.ng}
   if(res.kid){if(res.kid>0){G.kplan=null;const boy=Math.random()<.5;G.kids=(G.kids||0)+res.kid;if(boy)G.sons=(G.sons||0)+1;G.lastBirth=G.age;G.kl=G.kl||[];G.kl.push({n:R(boy?['복동','개똥','귀동','돌이','만수','삼돌','칠복']:['간난','복순','이쁜','옥분','순이','말순','섭섭']),s:boy?'m':'f',b:G.age});{const tw=Math.random(),ex=tw<.004?2:tw<.025?1:0,used=new Set(G.kl.map(k=>k.n)),bx=[];for(let t=0;t<ex;t++){const by=Math.random()<.5,nm=R((by?['복동','개똥','귀동','돌이','만수','삼돌','칠복','쌍동']:['간난','복순','이쁜','옥분','순이','말순','섭섭','쌍순']).filter(x=>!used.has(x)));used.add(nm);G.kids++;if(by)G.sons=(G.sons||0)+1;G.kl.push({n:nm,s:by?'m':'f',b:G.age});bx.push(by)}if(ex)G.twin=ex+1;if(ex===2)applyFx({wl:6})}
     res=Object.assign({},res,{r:res.r+' '+(boy?'대문에 숯과 붉은 고추를 단 금줄이 걸렸다. 아들이다!':'대문에 숯과 푸른 솔가지를 단 금줄이 걸렸다. 딸이다!')+(G.twin===3?' 그런데 아기가 하나 더, 또 하나 더… 세쌍둥이였다! 온 마을이 구경을 왔다. 관아에 알리자 나라에서 쌀과 콩을 내려 주었다.':G.twin===2?' 그런데 아기가 하나 더 나왔다. 쌍둥이였다!':'')});G.twin=0}
   else if((G.kids||0)>0){const kl0=(G.kl||[]).filter(k=>k.d==null),yk=kl0.filter(k=>G.age-k.b<=10),hk=kl0.filter(k=>!k.out),lk=yk.length?R(yk):hk.length?R(hk):kl0.length?R(kl0):null,boy=lk?lk.s==='m':Math.random()<(G.sons||0)/G.kids;if(boy)G.sons=Math.max(0,(G.sons||0)-1);G.kids--;if(lk)lk.d=G.age;res=Object.assign({},res,{r:res.r+(lk?' ('+(boy?'아들':'딸')+' '+josaFix(lk.n+'을(를)')+' 잃었다.)':(boy?' (아들을 잃었다.)':' (딸을 잃었다.)'))})}}
   const d=applyFx(res.fx||{});if(res.unflag==='widowed'){G.flags.delete('widowed');G.flags.add('remarried');if(G.kin){G.kin.sp=G.sex==='m'?rr(-12,-2):rr(-3,6);G.kin.spD=null}}
-  if(res.flag){G.flags.add(res.flag);if(res.flag==='married')G.flags.delete('betrothed');if(res.flag==='gungnyeo'||res.flag==='naegwan'){G.flags.delete('betrothed');setWorld('wang');buildLabels()}if(res.flag==='gungout'){setWorld(G.cls);buildLabels()}}if(res.die&&!G.hf)G.execd=res.die;if(res.inv){G.inv=G.inv||{};G.inv[res.inv]=(G.inv[res.inv]||0)+1}if(res.clr)G.inv={};if(res.flag2)G.flags.add(res.flag2);if(res.job)G.job2=res.job;if(res.cls==='pyung'&&NOBIJOB.includes(G.job2))G.job2=G.sex==='m'?'farm':'weave';if(res.inlaw){ensureFam();G.kin.rp=1;G.flags.add('inlaw')}if(res.mv)G.mv=res.mv;if(res.kp){G.kplan=res.kp;G.kAsk=G.age}if(res.ked){const k=eduKid(G);if(k)k.ed=res.ked}if(res.adopt){const A=typeof res.adopt==='object'?res.adopt:{s:'m',min:3,max:10},sx=A.s==='r'?(Math.random()<.5?'m':'f'):A.s,ag=rr(A.min,A.max),used=new Set((G.kl||[]).map(k=>k.n)),nm=R((sx==='m'?['수복','만복','덕수','길동','순돌','영수','태복']:['복례','순덕','옥례','점례','귀례','막순']).filter(x=>!used.has(x)));G.kl=G.kl||[];G.kl.push({n:nm,s:sx,b:G.age-ag,ad:1});G.kids=(G.kids||0)+1;if(sx==='m')G.sons=(G.sons||0)+1;addLog(G.age,josaFix(nm+'이(가)')+' '+ag+'살에 '+(A.s==='m'&&!A.found?'양자로':'우리 식구로')+' 들어왔다.',{tone:'good'})}if(res.hon){const k=honKid(G);if(k){if(res.hon==='wait')k.hw=G.age;else{k.hon=res.hon;k.hy=G.age}}}if(res.flag==='fallen'&&res.cls)G.job2=res.cls==='nobi'?(G.sex==='m'?'mfarm':'kitchen'):(G.sex==='m'?'farm':'weave');if(res.cls){G.cls=res.cls;setWorld(G.cls);buildLabels()}
+  if(res.flag){G.flags.add(res.flag);if(res.flag==='married')G.flags.delete('betrothed');if(res.flag==='gungnyeo'||res.flag==='naegwan'){G.flags.delete('betrothed');setWorld('wang');buildLabels()}if(res.flag==='gungout'){setWorld(G.cls);buildLabels()}}if(res.die&&!G.hf)G.execd=res.die;if(res.inv){G.inv=G.inv||{};G.inv[res.inv]=(G.inv[res.inv]||0)+1}if(res.clr)G.inv={};if(res.flag2)G.flags.add(res.flag2);if(res.job)G.job2=res.job;if(res.cls==='pyung'&&NOBIJOB.includes(G.job2))G.job2=G.sex==='m'?'farm':'weave';if(res.inlaw){ensureFam();G.kin.rp=1;G.flags.add('inlaw')}if(res.mv)G.mv=res.mv;if(res.crush)G.crushN=res.crush;if(res.unflag&&res.unflag!=='widowed')G.flags.delete(res.unflag);if(res.kp){G.kplan=res.kp;G.kAsk=G.age}if(res.ked){const k=eduKid(G);if(k)k.ed=res.ked}if(res.adopt){const A=typeof res.adopt==='object'?res.adopt:{s:'m',min:3,max:10},sx=A.s==='r'?(Math.random()<.5?'m':'f'):A.s,ag=rr(A.min,A.max),used=new Set((G.kl||[]).map(k=>k.n)),nm=R((sx==='m'?['수복','만복','덕수','길동','순돌','영수','태복']:['복례','순덕','옥례','점례','귀례','막순']).filter(x=>!used.has(x)));G.kl=G.kl||[];G.kl.push({n:nm,s:sx,b:G.age-ag,ad:1});G.kids=(G.kids||0)+1;if(sx==='m')G.sons=(G.sons||0)+1;addLog(G.age,josaFix(nm+'이(가)')+' '+ag+'살에 '+(A.s==='m'&&!A.found?'양자로':'우리 식구로')+' 들어왔다.',{tone:'good'})}if(res.hon){const k=honKid(G);if(k){if(res.hon==='wait')k.hw=G.age;else{k.hon=res.hon;k.hy=G.age}}}if(res.flag==='fallen'&&res.cls)G.job2=res.cls==='nobi'?(G.sex==='m'?'mfarm':'kitchen'):(G.sex==='m'?'farm':'weave');if(res.cls){G.cls=res.cls;setWorld(G.cls);buildLabels()}
   ok?sfx.ok():sfx.no();
   await say([{text:(ch.chk?(ok?'【성공!】 ':'【실패…】 '):'')+res.r,gain:fmtGain(d)}],id);if(id!==runId)return;
   addLog(G.age,(ev.h?'['+(G.year+G.age)+'년] ':'')+ev.t+' — '+ch.t+'. '+res.r,{note:nt,tone:ch.chk?(ok?'good':'bad'):''});
@@ -3623,7 +3631,8 @@ async function endLife(id,kind){
   (kind==='joseonend'?sfx.born:sfx.die)();await say([msg,'— 결말 — '+E.n],id);if(id!==runId)return;showEnding(key,isNew)}
 /* ===== 중대 결정 힌트 ===== */
 const cN=c=>c.n+((c.pen&&c.pen[G.cls])||0);
-function chHint(ch){if(!ch.chk)return '';const c=ch.chk;const p=c.s?clamp(Math.round((G.s[c.s]+15-cN(c))/30*100),0,100):Math.round(c.p*100);return '성공 가능성 약 '+p+'%'+(c.s?' ('+SL[c.s]+' '+G.s[c.s]+'/'+cN(c)+')':'')}
+function chkP(c){return c.s?clamp((G.s[c.s]+15-cN(c))/30,.05,.9):clamp(c.p,.03,.95)}
+function chHint(ch){if(!ch.chk)return '';const c=ch.chk;const p=Math.round(chkP(c)*100);return '성공 가능성 약 '+p+'%'+(c.s?' ('+SL[c.s]+' '+G.s[c.s]+'/'+cN(c)+')':'')}
 /* ===== 가족 · 동무 ===== */
 const HOBBY=['글씨 쓰기','바둑·장기','피리 불기','낚시','활쏘기','그림 그리기','약초 캐기','소리(판소리)'];
 function rr(a,b){return a+Math.floor(Math.random()*(b-a+1))}
@@ -3653,6 +3662,7 @@ function famYear(){if(!G.kin)ensureFam();if(G.year+G.age===1896&&P13[G.place]&&!
   {const cr=crisisOf(G.year+a);if(cr&&!G.rf)F.sb.forEach(x=>{if(a>x.off&&a<x.off+x.L&&Math.random()<.04){x.L=a-x.off;x.c=cr}});if(cr&&G.peers&&!G.rf)G.peers.forEach(p=>{if(a<p.L&&Math.random()<.04){p.L=a;p.c=cr}})}
   F.sb.forEach(x=>{if(x.L>0&&a>=x.off&&a===x.off+x.L){applyFx({bd:-2});const c=x.c||(x.c=famCause(x.L,G.year+a,x.sex));famLog(a,josaFix(sibName(x)+'이(가) ')+x.L+'세에 '+cz(c)+' 세상을 떠났다.',{tone:'bad'})}});
   if(G.peers&&!G.rf)G.peers.forEach(p=>{if(a===p.L&&!p.lg){p.lg=1;if(!p.c)p.c=famCause(p.L,G.year+a,p.sex);famLog(a,'같은 해 태어난 동무 '+josaFix(p.name+'이(가)')+' '+p.L+'세에 '+cz(p.c)+' 세상을 떠났다.',{tone:'bad'})}});
+  if(!G.rf)(G.kl||[]).forEach(k=>{if(k.d==null&&!k.out&&k.love==null&&a-k.b===14){k.love=Math.random()<.35?1:0;if(k.love)famLog(a,(k.s==='m'?'아들 ':'딸 ')+josaFix(k.n+'이(가)')+' 이웃집 '+(k.s==='m'?'처녀':'총각')+'를 마음에 두고 있다는 것을 눈치챘다.',{})}});
   if(!G.rf&&G.cls!=='wang')(G.kl||[]).forEach(k=>{if(k.d==null&&!k.out&&((k.hon&&a-k.b>=(k.s==='f'?14:16)&&a>k.hy)||a-k.b>=(k.s==='f'?19:21))){k.out=a;kidGrow(k)}});
   else (G.kl||[]).forEach(k=>{if(k.d==null&&!k.out&&a-k.b>=(k.s==='f'?15:17)){k.out=a;famLog(a,(k.s==='m'?'아들 ':'딸 ')+josaFix(k.n+'이(가)')+(G.rf?' 어엿한 어른이 되어 따로 처소를 두고 지내게 되었다.':' 혼례를 올리고 '+(k.s==='m'?'궁 밖에 따로 집을 마련해 나갔다(출합).':'궁을 떠나 시댁으로 갔다(하가).')),{tone:'good',note:'왕자와 공주·옹주는 혼인하면 궁궐을 나와 따로 살았어요. 다만 왕위를 이을 세자는 궁궐에 남았어요.'})}});
   if(!G.rf&&G.flags.has('married')&&!G.flags.has('widowed')&&a>=22&&Math.random()<Math.min(.05,Math.max(.004,(a-28)*.0015))*(crisisOf(G.year+a)?4:1)){G.flags.add('widowed');F.spD=a;applyFx({bd:-6,hp:-2});famLog(a,'배우자가 '+(a+F.sp)+'세에 '+cz(famCause(a+F.sp,G.year+a,G.sex==='m'?'f':'m'))+' 먼저 세상을 떠났다. 함께한 날들이 자꾸 떠오른다.',{tone:'bad'})}}
@@ -3869,7 +3879,7 @@ function renderTitle(){runId++;abortUI();G=null;hideGameUI();setWorld('pyung');v
    '<p class="lmcap">학자마다 추정이 달라요. 조선 전·중기를 단순화한 값이에요. 왕실은 실제로는 훨씬 드물지만, 만나 볼 수 있도록 조금 넣었어요.</p>'+
    '<p class="sectitle">'+(past.length?'지난 삶':'아직 지나간 삶이 없어요. 첫 삶을 시작해 보세요.')+'</p>'+
    (past.length?'<div class="memo">'+past.slice(0,4).map(p=>'<div><b>'+esc(p.name)+'</b>'+(CL[p.cls]?CL[p.cls].n:'')+' · '+p.age+'세<br>'+esc(p.end)+'</div>').join('')+'</div>':'');
-  $('#console').innerHTML='<div class="card"><div class="title-grid"><div class="tcol"><div class="vtag">v0.1 · 무료 · 조선 시대 인생 시뮬레이션</div>'+
+  $('#console').innerHTML='<div class="card"><div class="title-grid"><div class="tcol"><div class="vtag">조선 시대 인생 시뮬레이션</div>'+
    '<div class="hero-num">100분의 <em>1</em></div>'+
    '<p class="lead" style="font-size:17px">조선 백성 100명이 태어난다면, 양반은 몇 명일까요? 어느 집에서 태어날지는 고를 수 없어요. 당신이 그랬던 것처럼.'+(mob?' 1년씩 살아가다 결정의 순간마다 길을 고르면, 서로 다른 결말이 기다려요.':'')+'</p>'+
    (mob?'':'<div class="how"><div><b>태어나기</b>신분·고향·집안이 무작위로 정해져요</div><div><b>살아가기</b>1년씩 지나가다 결정의 순간에 멈춰요</div><div><b>한평생</b>고른 길에 따라 서로 다른 결말이 나와요</div></div>')+
