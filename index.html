@@ -1006,10 +1006,10 @@ const EV=[
     {t:'정중히 사양한다',fx:{wl:4,hp:1},r:'욕심내지 않으니 마음이 편하다.'},
     {t:'그 돈으로 마을에 우물을 판다',need:{wl:20},fx:{wl:-20,hn:14,bd:10},r:'새 우물가에서 아낙들이 두레박을 올리며 활짝 웃었다.'}]},
 {id:'gunyeok',loc:'office',a:[16,60],who:['pyung'],w:2,req:g=>g.year+g.age<1871,t:'군포 독촉',
- p:['군역(軍役) 대신 군포를 내라는 관아의 독촉이 날아든다.'],
- c:g=>g.sex==='f'?[{t:'밤새 베를 짜 집안 남정네 몫의 군포를 마련한다',fx:{wl:-5,hp:-3,bd:2},r:'등잔불 아래 베틀 소리가 밤새 이어졌다. 겨우 군포 한 필을 채웠다.'},{t:'이웃 아낙들과 군포계를 모아 함께 낸다',fx:{wl:-4,bd:5},r:'조금씩 모은 돈으로 이웃 몇 집의 군포를 함께 냈다.'},{t:'고을 이방에게 사정한다',chk:{p:.4,ok:{fx:{bd:4,hn:2},r:'이방이 슬쩍 눈감아 주었다.'},ng:{fx:{wl:-8,hn:-3},r:'오히려 웃돈을 요구받았다.'}}}]:[{t:'포를 내고 군역을 면한다',need:{wl:10},fx:{wl:-10,hn:1},r:'아쉽지만 마음은 한결 가볍다.'},
+ p:g=>g.year+g.age>=1751?['균역법으로 한 필로 줄었다지만, 군포를 내라는 관아의 독촉은 어김없이 날아든다.','"줄어든 만큼 다른 이름으로 더 거둔다더라." 이웃들이 수군거린다.']:['군역(軍役) 대신 군포를 내라는 관아의 독촉이 날아든다.','두 필을 채우자니 한숨부터 나온다.'],
+ c:g=>{const po=g.year+g.age>=1751,pp=po?'한 필':'두 필';return g.sex==='f'?[{t:'밤새 베를 짜 집안 남정네 몫의 군포를 마련한다',fx:{wl:po?-3:-5,hp:-3,bd:2},r:'등잔불 아래 베틀 소리가 밤새 이어졌다. 겨우 군포 '+pp+'을 채웠다.'},{t:'이웃 아낙들과 군포계를 모아 함께 낸다',fx:{wl:po?-2:-4,bd:5},r:'조금씩 모은 돈으로 이웃 몇 집의 군포를 함께 냈다.'},{t:'고을 이방에게 사정한다',chk:{p:.4,ok:{fx:{bd:4,hn:2},r:'이방이 슬쩍 눈감아 주었다.'},ng:{fx:{wl:-8,hn:-3},r:'오히려 웃돈을 요구받았다.'}}}]:[{t:'포를 내고 군역을 면한다',need:{wl:po?6:10},fx:{wl:po?-6:-10,hn:1},r:'아쉽지만 마음은 한결 가볍다.'},
     {t:'직접 군역에 나선다',fx:{hp:-5,hn:6,bd:2},r:'고된 훈련을 버텨 내니 이웃들이 대견해했다.'},
-    {t:'고을 이방에게 사정한다',chk:{p:.4,ok:{fx:{bd:4,hn:2},r:'이방이 슬쩍 눈감아 주었다.'},ng:{fx:{wl:-8,hn:-3},r:'오히려 웃돈을 요구받았다.'}}}]},
+    {t:'고을 이방에게 사정한다',chk:{p:.4,ok:{fx:{bd:4,hn:2},r:'이방이 슬쩍 눈감아 주었다.'},ng:{fx:{wl:-8,hn:-3},r:'오히려 웃돈을 요구받았다.'}}}]}},
 {id:'hanyang',loc:'market',a:[16,45],w:1.4,req:g=>!PL(g,/한양/)&&!(PL(g,/제주/)&&g.year+g.age<1824)&&!inGung(g),t:'한양 이야기',
  p:['보부상들 말로는 한양 종로에 시전이 즐비하다 한다.','한번 가 보고 싶다.'],
  c:g=>[g.cls==='nobi'?{t:'주인께 청해 한양 심부름길에 따라나선다',chk:{p:.45,ok:{fx:{lr:4,bd:2,hp:-2},r:'주인댁 짐을 지고 따라간 길, 숭례문의 위용에 입이 떡 벌어졌다.'},ng:{fx:{bd:-2},r:'"네 일이나 하거라!" 주인은 허락하지 않았다.'}}}:{t:'봇짐을 싸 한양 구경길에 오른다',fx:{lr:4,bd:2,hp:-2,wl:-4,hn:2},r:'숭례문의 위용에 입이 떡 벌어졌다. 견문이 넓어졌다.'},
@@ -1032,6 +1032,50 @@ const EV=[
  c:[{t:'줄어든 군포를 기쁜 마음으로 낸다',fx:{wl:4,hn:2},r:'한 필로 줄어든 덕에 살림에 숨통이 트였다.'},
     {t:'모자란 세금은 어디서 채우는지 알아본다',chk:{s:'lr',n:35,ok:{fx:{lr:4,hn:4},r:'토지에 세금을 더 매기고, 어장·염전·배에서도 거둔다는 걸 알게 되었다.'},ng:{fx:{lr:1},r:'글이 어려워 다 이해하지는 못했다.'}}},
     {t:'이웃들과 임금의 은혜를 이야기한다',fx:{bd:5,hn:1},r:'모처럼 마을 사랑방에 웃음이 퍼졌다.'}]},
+{id:'gunjeok',loc:'office',a:[16,22],who:['pyung'],sex:'m',w:6,once:true,req:g=>g.year+g.age<1871,t:'군적에 이름이 오르다',
+ note:'조선에서는 16세에서 60세 사이의 양인 남자에게 군역의 의무가 있었어요. 군적(군인 명부)에 이름이 오르면 직접 군대에 가는 정군(正軍)이 되거나, 정군의 비용을 베로 대 주는 보인(保人)이 되었어요. 조선 후기로 갈수록 직접 가는 군역은 줄고 군포를 내는 일이 많아졌어요.',
+ p:['어느덧 군역을 질 나이가 되었다. 아전이 군적에 이름을 올리러 찾아왔다.',['아전','"이제 어엿한 장정이니 군역을 지셔야지. 정군이 될지 보인이 될지는 형편 따라 정하세."']],
+ c:[{t:'정군(正軍)이 되어 직접 군역을 지겠다고 한다',fx:{hp:-2,hn:4,bd:2},flag:'veteran',r:'군적에 이름이 올랐다. 이제 나라의 군사로 불려 나갈 몸이 되었다.'},
+    {t:'보인(保人)으로 이름을 올리고 군포를 대기로 한다',fx:{wl:-4,hn:0},r:'정군으로 나가는 이의 살림을 돕는 몫으로 해마다 베를 내기로 했다.'},
+    {t:'아전에게 사정해 한두 해 말미를 얻으려 한다',chk:{p:.35,ok:{fx:{wl:-3,bd:2},r:'아전이 못 이기는 척 장부를 미루어 주었다. 한숨 돌렸다.'},ng:{fx:{wl:-8,hn:-3},r:'뒷돈만 받고도 이름은 그대로 올렸다.'}}}]},
+{id:'sokoh',loc:'field',a:[16,55],who:['pyung','nobi'],sex:'m',w:3,req:Y(1594,1894),t:'속오군 훈련',
+ note:'속오군은 임진왜란 중인 1594년에 만든 지방 군대예요. 평소에는 농사를 짓다가 정해진 때에 모여 창과 활, 조총을 다루는 훈련을 받았어요. 양인뿐 아니라 노비도 함께 편성되었어요.',
+ p:['농사일이 한숨 돌릴 무렵, 고을 군관이 장정들을 훈련에 모이라고 호령한다.','창과 깃발을 든 마을 장정들이 마당에 줄을 선다.'],
+ c:[{t:'창과 활을 익히며 성실히 훈련한다',chk:{s:'hp',n:45,ok:{fx:{hn:5,hp:1,bd:3},r:'훈련이 끝나자 군관이 솜씨가 좋다며 칭찬했다. 함께 땀 흘린 장정들과 가까워졌다.'},ng:{fx:{hp:-5,hn:1},r:'무거운 창을 들다 어깨를 다쳐 한참 앓았다.'}}},
+    {t:'꾀병을 부려 훈련을 빠진다',chk:{p:.45,ok:{fx:{hp:1},r:'아픈 척을 하니 군관이 못 본 척해 주었다. 마음 한구석이 켕긴다.'},ng:{fx:{wl:-4,hn:-3},r:'꾀병이 들통나 벌금을 물고 모두 앞에서 망신을 당했다.'}}},
+    {t:'훈련이 끝난 뒤 동료들과 막걸리를 나눈다',fx:{bd:5,wl:-2},r:'고된 하루를 마치고 마시는 막걸리 한 사발에 서로의 사정을 털어놓았다.'}]},
+{id:'beonsang',loc:'office',a:[18,45],who:['pyung','jung'],sex:'m',w:3,req:g=>Y(1600,1850)(g)&&!g.flags.has('official'),t:'한양 번상(番上)',
+ note:'번상은 지방의 군사가 차례(번)를 나누어 한양에 올라가 궁궐과 도성을 지키는 일이에요. 오가는 길이 멀고 식량도 스스로 마련해야 해서 큰 부담이었어요. 그래서 돈을 주고 대신 서게 하는 대립(代立)이 생겼고, 점점 번상 대신 베를 내는 쪽으로 바뀌었어요.',
+ p:['고을 관아에서 이번 번(番)은 우리 차례라며 한양으로 올라가 입번하라고 통보했다.','먼 길이라 식량과 짚신부터 챙겨야 한다.'],
+ c:[{t:'식량을 짊어지고 한양으로 올라간다',chk:{s:'hp',n:42,ok:{fx:{lr:3,hn:3,hp:-2,wl:-3},flag:'veteran',r:'숭례문을 지나 도성에서 번을 서며 궁궐 담장 아래서 밤을 새웠다. 견문이 크게 넓어졌다.'},ng:{fx:{hp:-8,wl:-3},r:'먼 길에 병을 얻어 도성에 닿기도 전에 쓰러졌다.'}}},
+    {t:'품삯을 주고 대신 설 사람을 구한다',need:{wl:10},fx:{wl:-10},r:'돈을 주고 대신 설 사람을 구했다. 곳간은 줄었지만 몸은 편하다.'},
+    {t:'군포를 내고 입번을 면한다',need:{wl:6},fx:{wl:-6,hn:-1},r:'베 한 필을 내고 번을 면했다. 마음 한쪽이 개운치 않다.'}]},
+{id:'surja',loc:'field',a:[18,40],who:['pyung','jung'],sex:'m',w:2.5,req:g=>Y(1600,1800)(g)&&(PL(g,/평안|함경/)||Math.random()<.25),t:'북방 변경 방수',
+ note:'방수(수자리)는 국경이나 변방의 진(鎭)에 가서 일정 기간 지키는 군역이에요. 평안도·함경도 같은 북쪽 국경 지방에서는 추운 겨울에도 변경을 지켜야 해서 고된 일로 여겨졌어요.',
+ p:['북쪽 국경의 진(鎭)에 병력이 모자란다며, 방수를 나갈 장정을 뽑는다는 통지가 왔다.','압록강 건너 찬바람이 벌써 마을까지 불어오는 것 같다.'],
+ c:[{t:'기꺼이 변방 수자리에 나선다',chk:{s:'hp',n:50,ok:{fx:{hn:10,hp:-4,bd:3},flag:'veteran',r:'한 해 가까이 눈 덮인 국경을 지켰다. 돌아오니 마을 사람들이 어깨를 두드려 주었다.'},ng:{fx:{hp:-12,hn:3},flag:'veteran',r:'혹독한 추위에 동상을 입었지만 맡은 일은 끝까지 해냈다.'}}},
+    {t:'포를 내고 다른 사람이 대신 서게 한다',need:{wl:8},fx:{wl:-8,hn:-1},r:'대신 서 줄 사람을 구했다. 먼 변방 소식이 들려올 때마다 마음이 무겁다.'},
+    {t:'진장(鎭將)에게 사정해 가까운 곳 근무로 바꾼다',chk:{p:.4,ok:{fx:{wl:-3,bd:2},r:'진장이 사정을 헤아려 가까운 고을 근무로 돌려 주었다.'},ng:{fx:{wl:-6,hn:-2},r:'청은 받아들여지지 않고 웃돈만 나갔다.'}}}]},
+{id:'gunyeong',loc:'office',a:[18,38],who:['pyung','jung'],sex:'m',w:2.5,once:true,req:g=>Y(1594,1881)(g)&&!g.flags.has('official'),t:'군영 군사 모집',
+ note:'훈련도감은 임진왜란 중인 1593년에 만든 군영이에요. 급료로 쌀과 베를 받는 직업 군인이라 급료병이라고도 불렀어요. 한양의 군영에서는 활과 조총 솜씨가 좋은 사람을 뽑았지만, 급료가 밀리는 일도 잦았어요.',
+ p:['한양 군영에서 활과 조총을 잘 다루는 장정을 뽑는다는 방이 붙었다.','뽑히면 달마다 쌀과 베를 받는다고 한다.'],
+ c:[{t:'군영에 응모해 시험을 치른다',chk:{s:'hp',n:55,ok:{fx:{wl:12,hn:6,hp:-3},flag:'veteran',r:'과녁을 맞히자 군관이 이름을 적었다. 이제 달마다 급료를 받는 군사가 되었다.'},ng:{fx:{hp:-3,hn:-2},r:'조총 소리에 놀라 손이 떨렸다. 이번에는 뽑히지 못했다.'}}},
+    {t:'고향 땅을 지키며 농사에 힘쓴다',fx:{wl:3,hp:1},r:'군영 대신 논밭을 택했다. 오늘도 흙냄새가 구수하다.'},
+    {t:'먼저 군영에 들어간 이웃에게 사정을 물어본다',fx:{lr:2,bd:3},r:'군영 생활은 쌀을 받는 대신 규율이 엄하고, 급료가 밀릴 때도 많다고 한다.'}]},
+{id:'baekgol',loc:'office',a:[16,60],who:['pyung','jung'],w:3.5,once:true,req:Y(1720,1870),t:'억울한 군포 고지서',
+ note:'조선 후기에는 군포를 거두는 일이 어지러워졌어요. 갓 태어난 아기를 군적에 올려 군포를 걷는 황구첨정, 이미 죽은 사람의 몫을 걷는 백골징포, 도망간 사람의 몫을 이웃과 친척에게 떠넘기는 인징·족징이 대표적이에요. 정약용은 이런 군정의 폐단을 〈애절양〉 같은 시로 남겼어요.',
+ p:g=>g.kids?['관아에서 군포 고지서가 날아왔다. 그런데 이름란에 이제 막 젖을 뗀 우리 아이의 이름이 적혀 있다.','아직 걷지도 못하는 아이에게 군포를 내라니 기가 막힌다.']:['관아에서 군포 고지서가 날아왔다. 그런데 이름란에 석 달 전 세상을 떠난 이웃의 이름이 적혀 있다.',['아전','"장부에 이름이 있는 한 누군가는 내야 하오. 그 집 몫이 이웃인 자네 집으로 넘어왔소."']],
+ c:[{t:'아전을 찾아가 억울함을 따진다',chk:{s:'lr',n:40,pen:{pyung:5},ok:{fx:{hn:4,lr:2},r:'조목조목 따지니 아전이 장부를 다시 확인하겠다며 한발 물러섰다.'},ng:{fx:{hn:-1,hp:-3},r:'"까다롭게 굴면 군포 말고 곤장이다!" 쫓겨나고 말았다.'}}},
+    {t:'이웃들과 함께 관아에 억울함을 호소한다',chk:{p:.45,ok:{fx:{bd:6,hn:4},r:'마을 사람들이 함께 나서자 사또가 못 이기는 척 고지서를 거두어 갔다.'},ng:{fx:{bd:2,wl:-4},r:'호소는 받아들여지지 않았고, 소란을 피웠다며 벌금까지 물었다.'}}},
+    {t:'억울하지만 군포를 내 버린다',need:{wl:8},fx:{wl:-8,hn:-1},r:'안 내면 그 몫이 이웃과 친척에게 번진다니, 눈 딱 감고 냈다.'}]},
+{id:'howoje',h:1,loc:'office',a:[16,60],who:['gwi','yang','jung','pyung'],req:Y(1871,1873),w:8,once:true,t:'호포제 시행',
+ note:'호포제(1871, 고종 8년)는 흥선대원군이 시행했어요. 그전까지 양반은 군포를 내지 않았지만, 이때부터 신분에 상관없이 집(호)마다 군포를 내게 했어요. 양반의 반발이 컸지만, 평민에게만 몰렸던 군포 부담을 나눈 개혁이었어요.',
+ p:['관아 앞에 방이 붙었다. 이제 양반 집이든 평민 집이든 집집마다 군포를 낸다는 소식이다.','대원군 대감의 뜻이라고들 한다.'],
+ c:g=>['yang','gwi'].includes(g.cls)?[{t:'못마땅하지만 호포를 낸다',fx:{wl:-5,hn:-1},r:'"상놈과 같은 값을 내라니!" 속이 끓었지만 나라 법이니 호포를 바쳤다.'},
+    {t:'나라 살림이 공평해지는 일이라며 집안 어른들을 달랜다',fx:{hn:4,bd:3},r:'어른들이 한참 혀를 찼지만, 결국 고개를 끄덕였다.'},
+    {t:'뜻이 같은 선비들과 상소를 올려 반대한다',chk:{p:.5,ok:{fx:{hn:4},r:'선비들의 이름이 줄줄이 적힌 상소가 올라갔다. 법은 바뀌지 않았지만, 기개를 보였다는 평이 돈다.'},ng:{fx:{hn:-2,wl:-3},r:'상소는 받아들여지지 않았고, 호포는 그대로 걷혔다.'}}}]:[{t:'부담이 고르게 나뉜다니 안도하며 호포를 낸다',fx:{wl:2,hn:1},r:'양반 댁에서도 낸다는 말에 장터 사람들이 속이 시원하다고들 했다.'},
+    {t:'이웃들과 양반도 군포를 내게 된 일을 이야기한다',fx:{bd:5,lr:1},r:'사랑방에서 밤늦도록 호포 이야기가 오갔다.'},
+    {t:'아전에게 호포 액수를 따져 묻는다',chk:{s:'lr',n:35,ok:{fx:{lr:4,hn:2},r:'집마다 정해진 만큼만 낸다는 것을 꼼꼼히 확인했다.'},ng:{fx:{lr:1},r:'바쁘다며 문전에서 쫓겨났다.'}}}]},
 {id:'sinhae',h:1,loc:'market',a:[18,60],req:g=>Y(1791,1796)(g)&&PL(g,/한양|경기도/),w:6,once:true,t:'신해통공',
  p:['장터가 술렁인다. 특권 상인만 장사하던 시전의 독점을 푼다는 방이 나붙었다.','이제 누구나 물건을 팔 수 있다고 한다. 육의전만 빼고.'],
  c:[{t:'좌판을 펼쳐 물건을 판다',chk:{p:.6,ok:{fx:{wl:16},r:'길가에 펼친 좌판 앞에 손님이 북적였다.'},ng:{fx:{wl:-8},r:'자리다툼 끝에 물건만 엎어졌다.'}}},
@@ -3390,7 +3434,7 @@ const HIST=[
 ];
 const HF=()=>G&&G.hf?HIST.find(h=>h.id===G.hf):null;
 const INEX=new Set(['sodang','gahun','kidedu','kidhon','mungsang','talsang','heun','hyangyak','bunjae','son','agi','doljan','sib_help','sib_fight','jaehon','kidplan','haesan_m','haesan_f','mulgeo','gwanjik','yubae','yeokmoje','mulgeo','gyeokjaeng','sarang','jang','hanyang','isa','jesa','hwangap','sinhae','gwageo','dongje','gimjang','hon','bobusang','jeong','peer_old','sib_meet','jahyul','hyuljeon','eosa','gunyeok','honghwamun','sami']);
-const HBLOCK=new Set(['buma','gukhon_f','yangja','naegwan','heotong','sarang','eumseo','jabgwa','hwaseong','p_hwaseong','yubae','yeokmoje','saeop','saeop_y','gwageo','mugwa','mangwa','mugwa_post','gungnyeo','molrak','tutak','yeonjwa','gando','hawaii','uinyeo','yeosang','myeon','napsok','gongmyeong','jokbo']);
+const HBLOCK=new Set(['gunjeok','sokoh','beonsang','surja','gunyeong','baekgol','buma','gukhon_f','yangja','naegwan','heotong','sarang','eumseo','jabgwa','hwaseong','p_hwaseong','yubae','yeokmoje','saeop','saeop_y','gwageo','mugwa','mangwa','mugwa_post','gungnyeo','molrak','tutak','yeonjwa','gando','hawaii','uinyeo','yeosang','myeon','napsok','gongmyeong','jokbo']);
 const MARRYIDS=new Set(['hon','honrye_m','honrye_f','nobihon','cheonhon','gukhon_f','buma','gantaek_m','gantaek_f']);
 const KWX=e=>{const f=RF()||HF();return !!(f&&f.kw.some(k=>e.t.includes(k)))};
 function histLoc(t){return /혼인|시집|장가|아들|딸|낳|어머니|아버지|세상을 떠|상을 당|집/.test(t)?'home':/급제|벼슬|임금|관아|관직|어사|조정|파직|상소|사신/.test(t)?'office':/장사|객주|부자|상인|포구|돈|재산|쌀/.test(t)?'market':/절|스님|출가|불교|천주|세례|신부/.test(t)?'temple':/유배|귀양|피란|싸움|전쟁|의병|군사|농사|섬/.test(t)?'field':'school'}
@@ -3756,7 +3800,7 @@ function rollBirth0(cls,sex,name){cls=cls||weightedClass();
 
 /* ============ 상태 · 화면 ============ */
 let G=null,runId=0,curBirth=null,curCleanup=null;
-const FLAGN={naegwan:'내관',hist:'실존 인물',gungnyeo:'궁녀',mugwa:'무과 급제',migrant:'이주',udu:'우두 접종',fallen:'신분 하락',seoeol:'서얼',napsok:'납속 양반',buma:'부마',inlaw:'왕실 혼인',widowed:'사별',remarried:'재혼',official:'관직',married:'혼인',betrothed:'정혼',exiled:'유배',rebel:'봉기',plotter:'역모',freed:'면천',teacher:'훈장',merchant:'객주',corrupt:'탐관',saengwon:'생원',debt:'빚'};
+const FLAGN={veteran:'군역 복무',naegwan:'내관',hist:'실존 인물',gungnyeo:'궁녀',mugwa:'무과 급제',migrant:'이주',udu:'우두 접종',fallen:'신분 하락',seoeol:'서얼',napsok:'납속 양반',buma:'부마',inlaw:'왕실 혼인',widowed:'사별',remarried:'재혼',official:'관직',married:'혼인',betrothed:'정혼',exiled:'유배',rebel:'봉기',plotter:'역모',freed:'면천',teacher:'훈장',merchant:'객주',corrupt:'탐관',saengwon:'생원',debt:'빚'};
 const jb=(n,a,b)=>{n=String(n||'');const c=n.charCodeAt(n.length-1);return n+((c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28)?a:b)};
 function josaFix(t){
   const B=ch=>{const c=ch.charCodeAt(0);if(c>=0xAC00&&c<=0xD7A3)return (c-0xAC00)%28;return /[0-9]/.test(ch)?('2459'.indexOf(ch)<0?1:0):0};
@@ -4155,7 +4199,7 @@ function rOut(g){g=g||G;if(!g||g.cls!=='wang')return false;if(g.used&&g.used.has
 function passOK(p){if(G&&G.cls==='wang'){const out=rOut();if(p.out&&!out)return false;if(out&&!p.out&&/궁궐|처소|궁중|후원|내의원|나인|상궁|대비전/.test(p.t))return false;if(G.sex==='f'&&/활쏘기|활 솜씨|활터/.test(p.t))return false}else if(p.out)return false;if(G&&G.flags.has('naegwan'))return !!p.nae;if(p.nae)return false;if(G&&inGung(G))return !!p.gung;if(p.gung)return false;if(G.cls==='wang')return !!p.who&&p.who.includes('wang');
   return !p.who||p.who.includes(G.cls)||(G.cls==='gwi'&&p.who.includes('yang'))}
 function examDue(){if(G&&!G.rf&&['nobi','cheon'].includes(G.cls)&&G.year+G.age>=1894&&(G.age<(G.cls==='nobi'?10:8)||G.year+G.age>1897)&&!inGung(G)){const was=G.cls;G.cls='pyung';G.flags.add(was==='nobi'?'freed':'cheonfree');if(NOBIJOB.includes(G.job2))G.job2=G.sex==='m'?'farm':'weave';try{setWorld(G.cls);buildLabels()}catch(e){}addLog(G.age,(G.age<10?'어릴 적 갑오개혁으로 신분제가 없어졌다. 부모님은 이제 '+(was==='nobi'?'노비가':'천민이')+' 아니라며 나를 꼭 안아 주셨다.':'갑오개혁으로 신분제가 없어졌다는 소식이 마침내 우리 고을까지 닿았다. 이제 '+(was==='nobi'?'노비가':'천민이')+' 아니다.'),{tone:'good',note:'1894년 갑오개혁으로 노비제와 신분 차별이 법으로 없어졌어요. 하지만 사람들의 차별은 그 뒤로도 오래 남았어요.'});updateStatus()}if(G&&G.job2==='study'&&G.year+G.age>=1894){G.job2='newedu';addLog(G.age,'갑오개혁으로 과거 시험이 없어졌다. 붓을 고쳐 잡고 신학문을 공부하기로 했다.',{note:'1894년 갑오개혁으로 과거 제도가 폐지되었어요. 이후에는 새로 세운 학교와 시험으로 관리를 뽑았어요.'})}const a=G.age,e=EV.find(x=>x.id==='gwageo');if(!e||G.rf||G.hf||G.sex!=='m'||a<e.a[0]||a>e.a[1]||!whoOK(e)||(e.req&&!e.req(G))||G.job2==='hermit'||G.examY===G.year+a)return null;if(!(G.job2==='study'||G.flags.has('saengwon')||((G.cls==='yang'||G.cls==='gwi')&&G.s.lr>=40)))return null;if((G.year+a)%3!==1||Math.random()>.7)return null;G.examY=G.year+a;return e}
-const COOL={sagajip:5,mungsang:8,talsang:2,chuno:6,sarang:5,r_simyang:2,r_simyang2:3,k_gyeongyeon:2,k_sangso:3,k_gamum:6,k_neunghaeng:4,r_jongchin:4,r_seyun:6,jinhyul:3,sodang:8,munan:6,son:6,nobihon:2,cheonhon:2,jesa:4,byeong:3,agi:3,sib_help:6,eosa:8,dongje:8,jeong:6,hon:2,jang:2,gimjang:3,hanyang:6,mulgeo:8,sinnyeo:5,jeolcha:6,momjeo:3};const coolOK=e=>!(COOL[e.id]&&G.evA&&G.evA[e.id]!=null&&G.age-G.evA[e.id]<COOL[e.id]);
+const COOL={sokoh:4,beonsang:5,surja:5,sagajip:5,mungsang:8,talsang:2,chuno:6,sarang:5,r_simyang:2,r_simyang2:3,k_gyeongyeon:2,k_sangso:3,k_gamum:6,k_neunghaeng:4,r_jongchin:4,r_seyun:6,jinhyul:3,sodang:8,munan:6,son:6,nobihon:2,cheonhon:2,jesa:4,byeong:3,agi:3,sib_help:6,eosa:8,dongje:8,jeong:6,hon:2,jang:2,gimjang:3,hanyang:6,mulgeo:8,sinnyeo:5,jeolcha:6,momjeo:3};const coolOK=e=>!(COOL[e.id]&&G.evA&&G.evA[e.id]!=null&&G.age-G.evA[e.id]<COOL[e.id]);
 function pickEvent(){const a=G.age;G.evA=G.evA||{};
   const force=k=>{const e=EV.find(x=>x.id===k);return e&&G.evA[e.id]!==a&&coolOK(e)&&a>=e.a[0]&&a<=e.a[1]&&whoOK(e)&&(!e.sex||e.sex===G.sex)&&(!e.req||e.req(G))&&!(e.once&&G.used.has(e.id))&&G.lastEv!==e.id?e:null};
   if(G.cls==='wang'&&!G.rf){const e=force('chaekbong')||(!G.flags.has('married')&&a>=11&&(force('gantaek_m')||force('gantaek_f')))||force('chulgung');if(e&&Math.random()<.8)return e}
