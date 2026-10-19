@@ -573,6 +573,7 @@ input[type=password]{width:100%;max-width:340px;border:2px solid var(--ink);bord
       <button class="btn sm ghost" id="btnSound" type="button">소리 켜짐</button>
       <button class="btn sm ghost" id="btnBgm" type="button">가락 켜짐</button>
       <button class="btn sm ghost" id="btnDex" type="button">엔딩 도감</button>
+      <button class="btn sm ghost" id="btnPast" type="button">지난 삶</button>
       <button class="btn sm ghost" id="btnStamp" type="button">도장첩</button>
     </div>
   </header>
@@ -3849,7 +3850,7 @@ function hideGloss(){const el=$('#gloss');if(el){el.hidden=true;el.innerHTML=''}
 function addLog(age,text,o){o=o||{};const li=document.createElement('li');li.className=o.tone||'';
   li.innerHTML='<span class="a">'+age+'세</span><div class="t">'+esc(fillN(text))+(o.note?'<div class="src"><b>자료</b>'+esc(o.note)+'</div>':'')+(()=>{const gk=glossFind(text).slice(0,3);return gk.length?'<div class="src"><b>뜻</b>'+gk.map(k=>esc(k)+': '+esc(GLOSS[k])).join(' · ')+'</div>':''})()+'</div>';
   const f=$('#feed');f.insertBefore(li,f.firstChild);while(f.children.length>90)f.lastChild.remove();try{applyFF()}catch(e){}}
-function applyFx(fx){const d={};for(const k in fx){const b=G.s[k];let v=fx[k];if(k==='bd'&&v>0)v=Math.max(1,Math.round(v*.7));G.s[k]=clamp(b+v,0,100);d[k]=G.s[k]-b}return d}
+const GAIN=.7;function applyFx(fx){const d={};for(const k in fx){const b=G.s[k];let v=fx[k];if(k==='bd'&&v>0)v=Math.max(1,Math.round(v*.7));else if((k==='wl'||k==='hn'||k==='lr')&&v>0)v=Math.max(1,Math.round(v*GAIN));G.s[k]=clamp(b+v,0,100);d[k]=G.s[k]-b}return d}
 function fmtGain(d){const a=Object.keys(d).filter(k=>d[k]!==0).map(k=>SL[k]+' '+(d[k]>0?'+':'')+d[k]);return a.length?'▶ '+a.join(' · '):''}
 
 /* ============ 대화창 · 선택창 (쯔꾸르식) ============ */
@@ -4071,9 +4072,10 @@ function passiveLine(){const a=G.age;
   const rp=G.rp||(G.rp=[]),all=(G.flags.has('migrant')?MIGP():PASS).filter(p=>a>=p.a[0]&&a<=p.a[1]&&(G.flags.has('migrant')||passOK(p))&&parOK(p.t)&&(canWrite()||!/읽었|읽으며|소설|편지로|시를 지으|붓글씨|베껴/.test(p.t))&&(!p.sex||p.sex===G.sex)&&(!p.req||p.req(G))),fresh=all.filter(p=>!rp.includes(p.t)),pool=fresh.length?fresh:all;if(!pool.length)return {};
   const p0=R(pool),p=G.sex==='f'&&/사랑방/.test(p0.t)&&!/벼슬아치들이/.test(p0.t)?Object.assign({},p0,{t:p0.t.replace(/사랑방/g,'안방')}):p0;rp.push(p0.t);if(rp.length>Math.min(18,Math.floor(all.length*.7)))rp.shift();const d=quiet?{}:applyFx(p.fx||{});addLog(a,p.t,{note:p.note,tone:(!quiet&&(p.fx.hp<0||p.fx.wl<0))?'bad':''});setIdle(p.t);return d}
 function yearTick(){const a=G.age,s=G.s;let d=0;try{gahunTick()}catch(e){}
+  if(a>=20){for(const k of ['wl','hn','lr','bd']){if(s[k]>=80){if(Math.random()<.15)s[k]--}else if(s[k]>=60&&Math.random()<.04)s[k]--}}
   if(a<30)d=Math.random()<.2?1:0;else if(a<45)d=Math.random()<.25?-1:0;else if(a<60)d=Math.random()<.6?-1:0;else d=-1-(Math.random()<.5?1:0);s.hp=clamp(s.hp+d,0,100);if(a>=15&&a<=60&&Math.random()<.2)s.wl=clamp(s.wl+1,0,100);
   if(G.autoD&&!G.focusMan&&a>=FOCUS_AGE){const ks=['lr','wl','hn','bd'].concat(s.hp<45?['hp']:[]);ks.sort((x,y)=>s[x]-s[y]);const pick=Math.random()<.7?ks[0]:R(ks.slice(0,3));if(pick!==G.focus){G.focus=pick}}
-  const f=G.focus;G.fdv=null;if(f&&a>=FOCUS_AGE&&s[f]!=null){const g0=s[f],inc=f==='hp'?1+(Math.random()<.3?1:0):s[f]>=90?1:s[f]>=70?1+(Math.random()<.5?1:0):2+(Math.random()<.35?1:0);s[f]=clamp(s[f]+inc,0,100);if(s[f]>g0){G.fdv={k:f,v:s[f]-g0,a:a}}
+  const f=G.focus;G.fdv=null;if(f&&a>=FOCUS_AGE&&s[f]!=null){const g0=s[f],inc=f==='hp'?1+(Math.random()<.3?1:0):s[f]>=90?(Math.random()<.3?1:0):s[f]>=70?(Math.random()<.65?1:0):1+(Math.random()<.3?1:0);s[f]=clamp(s[f]+inc,0,100);if(s[f]>g0){G.fdv={k:f,v:s[f]-g0,a:a}}
     {const dn=focusDef(f).dn;if(dn&&s[dn]>0&&Math.random()<.5)s[dn]--}}}
 function deathMsg(kind){const y=G.year+G.age,a=G.age,f=G.sex==='f',poor=G.s.wl<15,rich=G.s.wl>=70,hi=['yang','gwi','wang'].includes(G.cls),pl=G.place||'',j=G.job2,fl=G.flags;
   const P=[];const add=(...x)=>P.push(...x),add2=(...x)=>{P.push(...x);P.push(...x)};
@@ -4180,8 +4182,8 @@ function checkDeath(){const a=G.age,cm=CLM[G.cls]||1;
   {const y=G.year+a,pl=G.place||'';let w=0;if(y>=1636&&y<=1637)w=/평안도|황해도|경기도|한양/.test(pl)?.03:.008;else if(y===1627)w=/평안도|황해도/.test(pl)?.02:0;else if(y===1894)w=/전라도|충청도/.test(pl)?.02:.003;else if(y>=1907&&y<=1909)w=.006;
    if(a>=12&&a<=65&&w&&Math.random()<w)return 'war';
    const fam=(y>=1670&&y<=1671)||(y>=1695&&y<=1696)||(y>=1876&&y<=1877);if(fam&&Math.random()<(G.s.wl<25?.04:G.s.wl<60?.01:.002))return 'famine'}
-  if(a>=15&&a<50&&Math.random()<clamp(.006+Math.max(0,60-G.s.hp)/1500,.004,.04)*cm)return 'ill';
-  if(a>=50&&Math.random()<clamp(((70-G.s.hp)/600+(a-50)*.005)*cm+(a>=80?(a-80)*.02:0),0,.7))return 'natural';return null}
+  if(a>=15&&a<50&&Math.random()<clamp(.011+Math.max(0,60-G.s.hp)/1200,.008,.05)*cm)return 'ill';
+  if(a>=45&&Math.random()<clamp(((70-G.s.hp)/500+(a-45)*.006)*cm+(a>=75?(a-75)*.02:0),0,.75))return 'natural';return null}
 const WANG_OK=new Set(['kidplan','chulgung','jaehon','hwangap','okssa','ilsang','byeong','jesa','son','mama','haesan_f','haesan_m','doljan','agi']);
 const GWI_NO=new Set(['heun','nong','dam','gunyeok','jubin','mulgeo','uinyeo']);
 const MEV=new Map();function marryEv(e){if(!MEV.has(e.id)){let t='';try{t=typeof e.c==='function'?e.c.toString():JSON.stringify(e.c)}catch(x){}MEV.set(e.id,/married|"kid"|kid:|widowed|haesan/.test(t+e.id))}return MEV.get(e.id)}
@@ -4645,12 +4647,12 @@ function showEnding(key,isNew){const E=endInfo(key),dex=store.get('jo.dex',[]);a
   const cells=Array.from({length:Math.max(80,Math.ceil((G.age+1)/20)*20)},(_,i)=>'<i title="'+i+'세'+(G.mk&&G.mk[i]?' · '+G.mk[i]:'')+'" class="'+(i>G.age?'dead':'')+(G.mk&&G.mk[i]?' mk':'')+(i===expOf()?' ex':'')+'" style="'+(i<=G.age&&G.hap[i]!=null?'background:'+hapCol(G.hap[i]):'')+'">'+mkIcon(G.mk&&G.mk[i])+'</i>').join('');
   ensurePeers();const ol=Math.round(survFrac(G.jend?G.age:G.age+1)),olT=ol<1?'1명도 안 되는 아이만':ol>=99?'거의 모든 아이가':ol+'명'+(ol>=50?'이':'만이'),dx=G.age-expOf(),pl=G.peers.map(p=>p.L).sort((a,b)=>a-b);
   const cmpT=G.jend?'같은 해 태어난 100명 중 약 '+ol+'명만 1910년까지 살아 있었음':'100명 중 '+(ol<1?'1명도 안 되는 아이만':ol>=99?'거의 모두가':ol+'명'+(ol>=50?'이':'만'))+' 나보다 오래 삶 · 기대수명(약 '+expOf()+'세)보다 '+Math.abs(dx)+'년 '+(dx>=0?'더':'덜')+' 삶';
-  const rows=[[G.jend?'이야기의 끝':'사인',G.cause||'—'],['평생의 생업',G.job2&&JOBS[G.job2]?JOBS[G.job2][0]:'—'],['같은 해 태어난 아이들',cmpT],['동네 또래 4명',pl.map(x=>x+'세').join(' · ')+'까지 살았어요'],['마지막 일',last?last.age+'세 · '+last.t:'—'],['자녀',G.kids?kidTxt():'없음'],['가장 행복했던 해',best[0]>=0?best[1]+'세 ('+(G.year+best[1])+'년)':'—'],['남긴 재산',wealthTxt(G.s.wl)+' ('+moneyTxt(G.s.wl)+')'],['마지막 길을 배웅한 사람',G.kids?'자녀 '+G.kids+'명':G.flags.has('married')&&!G.flags.has('widowed')?'배우자':'동무 '+Math.round(G.s.bd/14)+'명'],['어른이 되어 힘쓴 곳',Object.entries(G.fy||{}).map(([k,v])=>focusName(k,G.age)+' '+v+'년').join(' · ')||'—']];
-  EPI={name:G.name,head:G.reign+'('+G.year+'년) 출생 · '+ageW()+(G.jend?'에 조선의 마지막을 맞다':'에 졸하다'),sub:CL[G.cls].n+' · '+G.place+' · '+E.n,no:String(G.no||''),rows:rows,
+  const rows=[[G.jend?'이야기의 끝':'사인',G.cause||'—'],['평생의 생업',G.job2&&JOBS[G.job2]?JOBS[G.job2][0]:'—'],['같은 해 태어난 아이들',cmpT],['동네 또래 4명',pl.map(x=>x+'세').join(' · ')+'까지 살았어요'],['마지막 일',last?last.age+'세 · '+last.t:'—'],['자녀',G.kids?kidTxt():'없음'],['가장 행복했던 해',best[0]>=0?best[1]+'세 ('+(G.year+best[1])+'년)':'—'],['남긴 재산',wealthTxt(G.s.wl)+' ('+moneyTxt(G.s.wl)+')'],[G.jend?'곁을 지킨 사람':'마지막 길을 배웅한 사람',G.kids?'자녀 '+G.kids+'명':G.flags.has('married')&&!G.flags.has('widowed')?'배우자':'동무 '+Math.round(G.s.bd/14)+'명'],['어른이 되어 힘쓴 곳',Object.entries(G.fy||{}).map(([k,v])=>focusName(k,G.age)+' '+v+'년').join(' · ')||'—']];
+  EPI={lb:G.jend?'생애 기록':'묘지명',name:G.name,head:G.reign+'('+G.year+'년) 출생 · '+ageW()+(G.jend?'에 조선의 마지막을 맞다':'에 졸하다'),sub:CL[G.cls].n+' · '+G.place+' · '+E.n,no:String(G.no||''),rows:rows,
    back:['행복했던 해 '+hy+'년 (총 '+G.age+'년 중)','가장 높은 능력치: '+top[1]+' '+G.s[top[0]]].concat(fk?[SN[fk[0]]+'에 힘쓴 해 '+fk[1]+'년']:[],['결정 '+G.chron.length+'번 · 도전 성공 '+ok+' · 실패 '+ng],mk?['큰일: '+mk]:[]),
    hap:G.hap.slice(0,G.age+1),age:G.age,mk:G.mk||{},exp:expOf(),txt:[G.place+'의 '+CL[G.cls].n+' 집안에서 '+(G.sex==='m'?'남':'여')+'자아이로 태어났다.',(G.kids?kidTxt()+'를 두고 ':'')+ageW()+(G.jend?'에 조선의 마지막을 지켜보았다.':'에 '+josaFix(E.n+'으로(로)')+' 세상을 떠났다.'),'같은 해 태어난 아이 100명 중 '+(G.jend?ol+'명만이 1910년까지 살아 있었다.':olT+' 나보다 오래 살았다.'),'너는 조선 백성 누구로 태어날까? #조선인생극장']};EPI.ol=ol;EPI.sil=silrok();if(EPI.sil)EPI.txt.splice(2,0,'〈만약 실록에 적혔다면〉 '+EPI.sil);
-  $('#console').innerHTML='<div class="card"><span class="end-flag">'+CL[G.cls].n+'으로 태어나 '+ageW()+'에 마침'+(isNew?' · 새 엔딩!':'')+'</span><h2 class="end-title">'+E.n+'</h2><p class="lead" style="margin-top:6px">'+esc(E.e)+'</p>'+
-   '<div class="epi"><div class="eh"><span>묘지명(墓誌銘)</span><code>No. '+esc(String(G.no||''))+'</code></div><p class="et">'+esc(G.reign)+'('+G.year+'년) 출생 <b>'+esc(G.name)+'</b>, '+ageW()+(G.jend?'에 조선의 마지막을 맞다. ':'에 졸(卒)하다. ')+esc(G.place)+'의 '+CL[G.cls].n+'.</p>'+
+  const H='<div class="card"><span class="end-flag">'+CL[G.cls].n+'으로 태어나 '+ageW()+'에 마침'+(isNew?' · 새 엔딩!':'')+'</span><h2 class="end-title">'+E.n+'</h2><p class="lead" style="margin-top:6px">'+esc(E.e)+'</p>'+
+   '<div class="epi"><div class="eh"><span>'+(G.jend?'생애 기록(生涯記)':'묘지명(墓誌銘)')+'</span><code>No. '+esc(String(G.no||''))+'</code></div><p class="et">'+esc(G.reign)+'('+G.year+'년) 출생 <b>'+esc(G.name)+'</b>, '+ageW()+(G.jend?'에 조선의 마지막을 맞다. ':'에 졸(卒)하다. ')+esc(G.place)+'의 '+CL[G.cls].n+'.</p>'+
    (()=>{const sl=silrok();return sl?'<div class="silrok"><small>만약 실록에 적혔다면</small><p>'+esc(sl)+'</p></div>':''})()+'<div class="eg">'+rows.map(r=>'<div><small>'+r[0]+'</small><b>'+esc(r[1])+'</b></div>').join('')+'</div>'+
    ((G.newSt&&G.newSt.length)?'<div class="newst"><b>새 도장을 받았어요!</b> '+G.newSt.map(k=>{const s=STAMPS.find(x=>x[0]===k);return '<span>印 '+(s?s[1]:k)+'</span>'}).join('')+'</div>':'')+letterHTML()+'<h4 style="margin:10px 0 4px">돌아보며</h4><ul class="back"><li>행복했던 해(행복도 60 이상)가 '+G.age+'년 중 <b>'+hy+'년</b>이었어요.</li><li>가장 높은 능력치는 <b>'+top[1]+' '+G.s[top[0]]+'</b>이에요.</li>'+
    (fk?'<li><b>'+SN[fk[0]]+'</b>에 힘쓴 해가 '+fk[1]+'년이에요.</li>':'')+'<li>결정의 순간을 '+G.chron.length+'번 맞았고, 도전은 성공 '+ok+'번 · 실패 '+ng+'번이었어요.</li>'+(mk?'<li>큰일: '+esc(mk)+'</li>':'')+'</ul></div>'+
@@ -4660,7 +4662,7 @@ function showEnding(key,isNew){const E=endInfo(key),dex=store.get('jo.dex',[]);a
    (()=>{const st=[...document.querySelectorAll('#feed li.star')].reverse().map(li=>[(li.querySelector('.a')||{}).textContent||'',((li.querySelector('.t')||{}).firstChild||{}).textContent||'']);return st.length?'<h3 style="margin:12px 0 4px;font-size:20px">★ 기억에 남는 순간</h3><ul class="timeline">'+st.map(x=>'<li><b>'+esc(x[0])+'</b> '+esc(x[1])+'</li>').join('')+'</ul>':''})()+'<h3 style="margin:12px 0 4px;font-size:20px">걸어온 길</h3><ul class="timeline"><li><b>0세</b> '+esc(G.reign)+', '+esc(G.place)+'의 '+CL[G.cls].n+' 집안에서 태어남</li>'+
    G.chron.map(c=>'<li><b>'+c.age+'세</b> '+esc(c.t)+' — '+esc(c.c)+(c.r?' ('+c.r+')':'')+'</li>').join('')+(G.kids?'<li><b>일생</b> '+kidTxt()+'를 두었다</li>':'')+'<li><b>'+G.age+'세</b> '+esc(E.n)+'</li></ul>'+
    glossBox([E.n,E.e,G.reign,G.place].concat(G.chron.map(c=>c.t+' '+c.c)),8)+
-   '<div id="fbstats" class="fbs"></div><div id="fbsame" class="fbs"></div>'+'<h3 style="margin:14px 0 4px;font-size:20px">이번 생 공유하기</h3><textarea id="epimemo" maxlength="60" rows="2" placeholder="이 삶을 살아 본 한 줄 소감 (선택)"></textarea><textarea id="epitxt" readonly rows="5">'+esc(shareText(''))+'</textarea>'+'<div class="row" style="margin-top:16px"><button class="btn pri" data-act="again">다시 태어나기</button>'+(clsCode()?'<button class="btn" data-act="board">우리 반 결과판</button>':'')+'<button class="btn" data-act="share">공유하기</button><button class="btn" data-act="saveimg">이미지 저장</button><button class="btn" data-act="copytxt">글 복사</button><button class="btn" data-act="dex">엔딩 도감 ('+dex.filter(k=>END_ORDER.includes(k)).length+'/'+END_ORDER.length+')</button></div></div>'}
+   '<div id="fbstats" class="fbs"></div><div id="fbsame" class="fbs"></div>'+'<h3 style="margin:14px 0 4px;font-size:20px">이번 생 공유하기</h3><textarea id="epimemo" maxlength="60" rows="2" placeholder="이 삶을 살아 본 한 줄 소감 (선택)"></textarea><textarea id="epitxt" readonly rows="5">'+esc(shareText(''))+'</textarea>'+'<div class="row" style="margin-top:16px"><button class="btn pri" data-act="again">다시 태어나기</button>'+(clsCode()?'<button class="btn" data-act="board">우리 반 결과판</button>':'')+'<button class="btn" data-act="share">공유하기</button><button class="btn" data-act="saveimg">이미지 저장</button><button class="btn" data-act="copytxt">글 복사</button><button class="btn" data-act="dex">엔딩 도감 ('+dex.filter(k=>END_ORDER.includes(k)).length+'/'+END_ORDER.length+')</button></div></div>';$('#console').innerHTML=H;try{savePast(H,E.n)}catch(e){}}
 
 /* ===== 생존 곡선 · 이미지 저장 · 기록 필터 · 맨 위로 ===== */
 let EPI=null,FF=null;
@@ -4684,19 +4686,19 @@ function survSVG(w,h){const W=Math.max(80,Math.ceil((G.age+3)/10)*10);const P=su
   const ax=G.age,sv=Math.round(survFrac(ax));
   return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="display:block;background:rgba(0,0,0,.08);border-radius:4px"><polyline fill="none" stroke="#8b7355" stroke-width="1.4" stroke-dasharray="4 3" points="'+KOR.map(p=>X(p[0])+','+Y(p[1])).join(' ')+'"/><polyline fill="none" stroke="#2f6b57" stroke-width="2" points="'+P.map(p=>X(p[0])+','+Y(p[1])).join(' ')+'"/><line x1="'+X(ax)+'" x2="'+X(ax)+'" y1="0" y2="'+h+'" stroke="#a3251c" stroke-dasharray="3 3"/><text x="'+Math.min(+X(ax)+3,w-60)+'" y="12" font-size="10" fill="#a3251c">'+(sv<1?'1% 미만':sv+'%')+' 생존</text></svg><div class="glg"><span><i style="background:#2f6b57"></i>이 아이의 조선(추정)</span><span><i style="background:#8b7355"></i>오늘의 대한민국(대략)</span><span>세로 = 같은 해 태어난 100명 중 살아 있는 수</span></div>'}
 function wrapTxt(x,t,px,py,mw,lh){let line='';for(const ch of t){if(x.measureText(line+ch).width>mw){x.fillText(line,px,py);py+=lh;line=ch}else line+=ch}x.fillText(line,px,py);return py+lh}
-function shareImg(mode){if(!EPI)return;const c=document.createElement('canvas');c.width=640;const LMN=Math.max(80,Math.ceil((EPI.age+1)/20)*20),LMX=(LMN/20-4)*28;c.height=1100+LMX;const x=c.getContext('2d');
+function shareImg(mode,ep){const EPX=ep||EPI;if(!EPX)return;const c=document.createElement('canvas');c.width=640;const LMN=Math.max(80,Math.ceil((EPX.age+1)/20)*20),LMX=(LMN/20-4)*28;c.height=1100+LMX;const x=c.getContext('2d');
   x.fillStyle='#f4ead2';x.fillRect(0,0,640,c.height);x.strokeStyle='#5b4528';x.lineWidth=4;x.strokeRect(14,14,612,c.height-28);
-  x.fillStyle='#3a2a14';x.textAlign='center';x.font='bold 22px sans-serif';x.fillText('조선 인생극장 · 묘지명  No. '+EPI.no,320,58);
-  x.font='bold 46px serif';x.fillText(EPI.name,320,125);x.font='18px sans-serif';x.fillText(EPI.head,320,162);x.fillText(EPI.sub,320,190);
-  x.textAlign='left';let y=235;if(EPI.sil){x.fillStyle='#8a2a1c';x.font='italic 15px serif';y=wrapTxt(x,'〈만약 실록에 적혔다면〉 '+EPI.sil,50,222,540,21)+14}x.font='17px sans-serif';
-  for(const r of EPI.rows){x.fillStyle='#7a6544';x.font='15px sans-serif';const yl=wrapTxt(x,r[0],50,y,140,20);x.fillStyle='#3a2a14';x.font='17px sans-serif';y=Math.max(yl,wrapTxt(x,r[1],200,y,390,24))+8}
+  x.fillStyle='#3a2a14';x.textAlign='center';x.font='bold 22px sans-serif';x.fillText('조선 인생극장 · '+(EPX.lb||'묘지명')+'  No. '+EPX.no,320,58);
+  x.font='bold 46px serif';x.fillText(EPX.name,320,125);x.font='18px sans-serif';x.fillText(EPX.head,320,162);x.fillText(EPX.sub,320,190);
+  x.textAlign='left';let y=235;if(EPX.sil){x.fillStyle='#8a2a1c';x.font='italic 15px serif';y=wrapTxt(x,'〈만약 실록에 적혔다면〉 '+EPX.sil,50,222,540,21)+14}x.font='17px sans-serif';
+  for(const r of EPX.rows){x.fillStyle='#7a6544';x.font='15px sans-serif';const yl=wrapTxt(x,r[0],50,y,140,20);x.fillStyle='#3a2a14';x.font='17px sans-serif';y=Math.max(yl,wrapTxt(x,r[1],200,y,390,24))+8}
   y+=8;x.font='bold 19px sans-serif';x.fillText('돌아보며',50,y);y+=30;x.font='16px sans-serif';
-  for(const b of EPI.back)y=wrapTxt(x,'· '+b,50,y,540,23)+2;
+  for(const b of EPX.back)y=wrapTxt(x,'· '+b,50,y,540,23)+2;
   y+=14;x.font='bold 19px sans-serif';x.fillText('인생 지도',50,y);y+=14;
-  for(let i=0;i<LMN;i++){const cx=50+(i%20)*28,cy=y+Math.floor(i/20)*28;x.fillStyle=i>EPI.age?'#d6d0c2':(EPI.hap[i]!=null?hapCol(EPI.hap[i]):'#ece6d6');x.fillRect(cx,cy,24,24);if(EPI.mk[i]){x.strokeStyle='#e0a800';x.lineWidth=3;x.strokeRect(cx+1,cy+1,22,22);x.fillStyle='#fff';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(mkIcon(EPI.mk[i]),cx+12,cy+17);x.textAlign='left'}if(i===EPI.exp){x.strokeStyle='#3a2a14';x.lineWidth=1;x.setLineDash([3,2]);x.strokeRect(cx,cy,24,24);x.setLineDash([])}}
-  x.fillStyle='#7a6544';x.font='13px sans-serif';x.fillText('한 칸 = 1년 · 진할수록 행복했던 해 · 금빛 테두리는 큰일',50,y+124+LMX);const memo=($('#epimemo')||{}).value;if(memo){x.font='italic 17px sans-serif';x.fillStyle='#3a2a14';wrapTxt(x,'“'+memo+'”',50,y+160+LMX,540,24)}
+  for(let i=0;i<LMN;i++){const cx=50+(i%20)*28,cy=y+Math.floor(i/20)*28;x.fillStyle=i>EPX.age?'#d6d0c2':(EPX.hap[i]!=null?hapCol(EPX.hap[i]):'#ece6d6');x.fillRect(cx,cy,24,24);if(EPX.mk[i]){x.strokeStyle='#e0a800';x.lineWidth=3;x.strokeRect(cx+1,cy+1,22,22);x.fillStyle='#fff';x.font='bold 13px sans-serif';x.textAlign='center';x.fillText(mkIcon(EPX.mk[i]),cx+12,cy+17);x.textAlign='left'}if(i===EPX.exp){x.strokeStyle='#3a2a14';x.lineWidth=1;x.setLineDash([3,2]);x.strokeRect(cx,cy,24,24);x.setLineDash([])}}
+  x.fillStyle='#7a6544';x.font='13px sans-serif';x.fillText('한 칸 = 1년 · 진할수록 행복했던 해 · 금빛 테두리는 큰일',50,y+124+LMX);const memo=ep?'':($('#epimemo')||{}).value;if(memo){x.font='italic 17px sans-serif';x.fillStyle='#3a2a14';wrapTxt(x,'“'+memo+'”',50,y+160+LMX,540,24)}
   x.textAlign='right';x.fillStyle='#7a6544';x.font='14px sans-serif';x.fillText('나도 해 보기 → '+GAMEURL.replace(/^https?:\/\//,''),610,c.height-30);x.textAlign='left';
-  const txt=shareText(memo||''),dl=b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='조선인생극장_'+EPI.name+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toastMsg('이미지를 저장했어요')};
+  const txt=shareText(memo||'',EPX),dl=b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='조선인생극장_'+EPX.name+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toastMsg('이미지를 저장했어요')};
   c.toBlob(b=>{if(mode==='save'){dl(b);return}
     const f=new File([b],'조선인생극장.png',{type:'image/png'});
     if(navigator.share){const d=navigator.canShare&&navigator.canShare({files:[f]})?{files:[f],text:txt}:{title:'조선 인생극장',text:txt,url:GAMEURL};navigator.share(d).catch(()=>{});return}
@@ -4712,12 +4714,41 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-act="share"]'))
 window.addEventListener('scroll',()=>{$('#totop').hidden=window.scrollY<400},{passive:true});
 
 const GAMEURL=/^https?:/.test(location.protocol)?location.origin+location.pathname:'https://m00nssaem12.github.io/joseon/';
-function shareText(m){return (m?m+'\n':'')+EPI.txt.join('\n')+'\n'+GAMEURL}
+function shareText(m,ep){ep=ep||EPI;return (m?m+'\n':'')+ep.txt.join('\n')+'\n'+GAMEURL}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t)return;
   if(t.dataset.act==='replayls'){if(G&&G.slides)playSlides(G.slides,G.sex);return}
   if(t.dataset.act==='lastlook'){const l=$('#lastl');l.hidden=!l.hidden}
   if(t.dataset.act==='copytxt'){const a=$('#epitxt');a.select();(navigator.clipboard?navigator.clipboard.writeText(a.value):Promise.reject()).catch(()=>document.execCommand('copy')).then(()=>{t.textContent='복사됨'})}});
 document.addEventListener('input',e=>{if(e.target.id==='epimemo')$('#epitxt').value=shareText(e.target.value)});
+
+/* ===== 지난 삶 결과지 보관 ===== */
+const PAST_MAX=12;
+function savePast(H,title){const i=H.indexOf('<div id="fbstats"');if(i<0||!EPI)return;
+  let m=H.slice(0,i)+'</div>';
+  m=m.replace(/<button class="btn sm" data-act="lastlook">.*?<\/button>/,'').replace(/<button class="btn sm" data-act="replayls">.*?<\/button>/,'').replace(/<div id="lastl".*?<\/div>/,'');
+  let L=store.get('jo.past',[]).filter(x=>x.no!==EPI.no);
+  L.unshift({no:EPI.no,name:G.name,year:G.year,age:G.age,cls:CL[G.cls].n,title:title,jend:!!G.jend,ts:Date.now(),main:m,epi:EPI});
+  L=L.slice(0,PAST_MAX);
+  for(let n=0;n<6&&L.length;n++){try{localStorage.setItem('jo.past',JSON.stringify(L));return}catch(e){L.pop()}}}
+let PAST_I=-1;
+function showPast(i){const L=store.get('jo.past',[]);const old=$('#pastov');if(old)old.remove();
+  const o=document.createElement('div');o.className='overlay';o.id='pastov';
+  if(i==null){
+    o.innerHTML='<div class="card" role="dialog" aria-label="지난 삶"><div class="row" style="justify-content:space-between"><h2 style="margin:0">지난 삶 <small style="font-size:14px;color:var(--sub)">'+L.length+'/'+PAST_MAX+'</small></h2><button class="btn sm" data-act="pastclose">닫기</button></div>'+
+      (L.length?'<div class="dex">'+L.map((x,k)=>'<div><b>'+esc(x.name)+' · '+esc(x.title)+'</b>'+x.year+'년 출생 · '+x.age+'세 · '+esc(x.cls)+(x.jend?' · 조선의 마지막을 맞음':'')+'<br><button class="btn sm" data-act="pastopen" data-v="'+k+'">결과지 보기</button> <button class="btn sm" data-act="pastdel" data-v="'+k+'">삭제</button></div>').join('')+'</div><p class="lmcap" style="margin-top:8px">최근 '+PAST_MAX+'번의 삶까지 이 기기(브라우저)에 보관돼요.</p>':'<p style="margin:12px 0">아직 기록이 없어요. 한 번의 삶을 끝까지 살아 보면 결과지가 여기에 남아요.</p>')+'</div>';
+  }else{
+    const x=L[i];if(!x)return;PAST_I=i;
+    o.innerHTML=x.main.slice(0,-6)+'<div class="row" style="margin-top:16px"><button class="btn" data-act="pastshare">공유하기</button><button class="btn" data-act="pastimg">이미지 저장</button><button class="btn" data-act="pastback">목록으로</button></div></div>';
+  }
+  document.body.appendChild(o);o.addEventListener('click',e=>{if(e.target===o)o.remove()})}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const o=$('#pastov');if(o)o.remove()}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+  if(a==='pastopen')showPast(+b.dataset.v);
+  else if(a==='pastback')showPast();
+  else if(a==='pastclose'){const o=$('#pastov');if(o)o.remove()}
+  else if(a==='pastdel'){if(!confirm('이 결과지를 지울까요?'))return;const L=store.get('jo.past',[]);L.splice(+b.dataset.v,1);store.set('jo.past',L);showPast()}
+  else if(a==='pastimg'||a==='pastshare'){const x=store.get('jo.past',[])[PAST_I];if(x)shareImg(a==='pastimg'?'save':'share',x.epi)}
+  else if(a==='again'){const o=$('#pastov');if(o)o.remove()}});
 /* ============ 우리 반 결과판 (학급 코드) ============ */
 const clsCode=()=>{const v=String(store.get('jo.class','')||'');return /^[A-Za-z]{3}[0-9]{3}$/.test(v)?v:''};
 const fmtCode=c=>'<span style="font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.15em;white-space:nowrap"><span style="color:var(--ink)">'+esc(c.slice(0,3))+'</span> <span style="color:var(--hi)">'+esc(c.slice(3))+'</span></span>';
@@ -4932,7 +4963,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
     else if(a==='skip'){G.skip=true;G.paused=false;updateSpeed()}
     else if(a==='autod'){G.autoD=!G.autoD;if(G.autoD)G.focusMan=false;updateSpeed()}
     else if(a==='focus'&&!G.dead&&G.age>=FOCUS_AGE){G.focusMan=true;const same=G.focus===v;G.focus=same?null:v;sfx.pick();addLog(G.age,same?'한 가지에 매이지 않고 두루 살피기로 했다.':'이제부터 '+focusName(v,G.age)+'에 마음을 쏟기로 했다.');updateStatus();saveGame()}}});
-$('#btnDex').addEventListener('click',showDex);$('#btnStamp').addEventListener('click',showStamps);
+$('#btnDex').addEventListener('click',showDex);$('#btnPast').addEventListener('click',()=>showPast());$('#btnStamp').addEventListener('click',showStamps);
 function syncSound(){$('#btnSound').textContent=soundOn?'소리 켜짐':'소리 꺼짐';const b=$('#btnBgm');if(b)b.textContent=store.get('jo.bgm',true)?'가락 켜짐':'가락 꺼짐'}
 $('#btnSound').addEventListener('click',()=>{soundOn=!soundOn;store.set('jo.sound',soundOn);syncSound();if(soundOn)sfx.pick()});$('#btnBgm').addEventListener('click',()=>{store.set('jo.bgm',!store.get('jo.bgm',true));syncSound()});
 syncSound();setWorld('pyung');buildLabels();renderTitle();
