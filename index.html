@@ -4763,7 +4763,7 @@ function showTeacher(){const old=$('#tcov');if(old)old.remove();const o=document
   const mine=store.get('jo.mycodes',[]).filter(m=>/^[A-Za-z]{3}[0-9]{3}$/.test(m.c));
   o.innerHTML='<div class="card" role="dialog" aria-label="학급 코드 만들기"><div class="row" style="justify-content:space-between"><h2 style="margin:0">학급 코드 만들기</h2><button class="btn sm" data-act="tcclose">닫기</button></div>'+
    '<p class="lead" style="margin-top:8px">선생님만 만들 수 있어요. 만든 코드를 칠판에 적어 주면, 학생들이 처음 화면에 넣고 확인을 눌러 연결해요.</p>'+
-   '<label class="f" for="mnum">마스터 번호 <small style="font-weight:400">(대문자·숫자를 정확히)</small></label><input type="password" id="mnum" autocomplete="off" style="max-width:220px">'+
+   '<label class="f" for="mnum">마스터 번호 <small style="font-weight:400">(대문자·숫자를 정확히)</small></label><input type="password" id="mnum" autocomplete="new-password" style="max-width:220px">'+
    '<label class="f" for="sname">학교 이름</label><input type="text" id="sname" maxlength="30" placeholder="예: 한빛초등학교" style="max-width:260px">'+
    '<label class="f" for="cname">반 이름</label><input type="text" id="cname" maxlength="20" placeholder="예: 5학년 3반" style="max-width:220px">'+
    '<div class="row" style="margin-top:14px"><button class="btn pri" data-act="mkcode">코드 만들기</button></div><div id="tcres" style="margin-top:14px"></div>'+
@@ -4779,7 +4779,7 @@ async function mkCode(){const r=$('#tcres'),m=($('#mnum').value||'').trim(),sc=(
   const n=sc+' '+n0;
   r.textContent='만드는 중…';let res=null;try{res=await JFB.makeCode(m,n0,sc)}catch(e){}
   if(!res||res.err==='offline'){r.textContent='온라인에 연결되지 않아 코드를 만들 수 없어요.';return}
-  if(res.err){r.textContent='마스터 번호가 맞지 않아요.';sfx.no();return}
+  if(res.err){r.textContent=(m!=='M00N'?'마스터 번호가 맞지 않아요.':'코드를 저장하지 못했어요. ('+(res.why||'denied')+') 잠시 뒤 다시 시도해 주세요.');sfx.no();return}
   const mine=store.get('jo.mycodes',[]);mine.unshift({c:res.code,n});store.set('jo.mycodes',mine.slice(0,20));store.set('jo.class',res.code);store.set('jo.className',n);sfx.ok();
   r.innerHTML='<div class="tip"><b>'+esc(n)+'</b> 코드가 만들어졌어요.<div style="font-size:56px;font-weight:800;margin:8px 0">'+fmtCode(res.code)+'</div>대문자와 소문자를 구분하니 그대로 알려 주세요. 이 기기도 이 반에 연결해 두었어요.</div>'+joinBox(res.code,n)}
 const BCL={wang:'왕실',gwi:'명문가',yang:'양반',seoeol:'서얼',jung:'중인',pyung:'평민',cheon:'천민(백정 등)',nobi:'천민(노비)'};
@@ -5003,10 +5003,11 @@ const JFB=(()=>{const o={ok:false,stats:null,my:null,online:0};o.board=async()=>
       const r=db.ref('lives').push();o.my=r.key;
       await r.set({cls:G.cls,sex:G.sex,year:G.year,age:Math.min(G.age,130),end:key,ts:firebase.database.ServerValue.TIMESTAMP}).catch(e=>console.warn(e));
       const code=clsCode();if(code)await db.ref('classes/'+code).push().set({cls:G.cls,bcls:G.bcls||G.cls,sex:G.sex,year:G.year,age:Math.min(G.age,130),end:key,fr:G.flags.has('freed')?1:0,np:G.flags.has('napsok')?1:0,rf:(G.rf||G.hf)?1:0,cl:G.cls,dc:G.dc||'weak',nm:String(G.name||'').slice(0,12),ms:slEnc(G.slides),ts:firebase.database.ServerValue.TIMESTAMP}).catch(e=>console.warn(e))};
-    o.codeName=async code=>{await o.ready;if(!o.ok)return undefined;if(!/^[A-Za-z]{3}[0-9]{3}$/.test(code))return null;const [sn,ss]=await Promise.all([db.ref('codes/'+code+'/n').once('value'),db.ref('codes/'+code+'/s').once('value')]);return sn.exists()?((ss.exists()?String(ss.val())+' ':'')+String(sn.val()||'우리 반')):null};
-    o.makeCode=async(master,name,school)=>{await o.ready;if(!o.ok)return {err:'offline'};const L='ACDEFHJKMNPRTUVWXYadefhmnrt',D='3479';/* 헷갈리는 O0 I1L S5 Z2 B8 G6 Q, 대소문자 모양이 같은 c k p u v w x y 소문자는 쓰지 않음 */
+    o.codeName=async code=>{try{await TO(o.ready,8000)}catch(e){return undefined}if(!o.ok)return undefined;if(!/^[A-Za-z]{3}[0-9]{3}$/.test(code))return null;const [sn,ss]=await Promise.all([db.ref('codes/'+code+'/n').once('value'),db.ref('codes/'+code+'/s').once('value')]);return sn.exists()?((ss.exists()?String(ss.val())+' ':'')+String(sn.val()||'우리 반')):null};
+    const TO=(p,ms)=>Promise.race([p,new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')),ms))]);
+    o.makeCode=async(master,name,school)=>{try{await TO(o.ready,8000)}catch(e){console.warn('makeCode ready',e.message);return {err:'offline'}}if(!o.ok)return {err:'offline'};const L='ACDEFHJKMNPRTUVWXYadefhmnrt',D='3479';/* 헷갈리는 O0 I1L S5 Z2 B8 G6 Q, 대소문자 모양이 같은 c k p u v w x y 소문자는 쓰지 않음 */
       for(let t=0;t<3;t++){let c='';for(let i=0;i<3;i++)c+=L[Math.floor(Math.random()*L.length)];for(let i=0;i<3;i++)c+=D[Math.floor(Math.random()*D.length)];
-        try{await db.ref('codes/'+c).set({k:master,n:name,s:school,ts:firebase.database.ServerValue.TIMESTAMP});return {code:c}}catch(e){if(t===2)return {err:'denied'}}}
+        try{await TO(db.ref('codes/'+c).set({k:master,n:name,s:school,ts:firebase.database.ServerValue.TIMESTAMP}),8000);return {code:c}}catch(e){console.warn('makeCode',e.code,e.message);if(e.message==='timeout')return {err:'offline'};if(t===2)return {err:'denied',why:e.code||e.message}}}
       return {err:'denied'}};
     o.board=async code=>{await o.ready;if(!o.ok)return null;const sn=await db.ref('classes/'+code).orderByChild('ts').limitToLast(500).once('value');const rows=[];sn.forEach(c=>{rows.push(c.val())});return rows};
     o.loadSame=()=>{if(!o.ok||!G)return;db.ref('lives').orderByChild('year').startAt(G.year-3).endAt(G.year+3).limitToLast(8).once('value').then(sn=>{
